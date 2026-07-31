@@ -1,0 +1,30 @@
+{
+  "season": "2026",
+  "_comment": "Career-average box score stats for the 2026 season. avgTimeAliveSeconds converted from mm:ss. Feeds the Statistics page and the Moose Score formula (functions/_lib/moose.js). Per-game granularity isn't tracked yet (roadmap: screenshot/manual box-score entry) — these are group-provided season averages.",
+  "players": {
+    "collin": { "games": 21, "avgElims": 16.91, "avgDamageDealt": 7505, "avgEliminated": 9.90, "avgDamageTaken": 4527, "avgTimeAliveSeconds": 2865, "kd": 1.71,
+      "max": { "elims": 25, "damageDealt": 13987, "eliminated": 15, "damageTaken": 5607, "timeAliveSeconds": 4074 } },
+    "sean":   { "games": 81, "avgElims": 14.24, "avgDamageDealt": 5968, "avgEliminated": 10.20, "avgDamageTaken": 4944, "avgTimeAliveSeconds": 2546, "kd": 1.40,
+      "max": { "elims": 26, "damageDealt": 9825, "eliminated": 16, "damageTaken": 8418, "timeAliveSeconds": 3803 } },
+    "j2":     { "games": 91, "avgElims": 13.22, "avgDamageDealt": 6131, "avgEliminated": 11.10, "avgDamageTaken": 5362, "avgTimeAliveSeconds": 2360, "kd": 1.19,
+      "max": { "elims": 29, "damageDealt": 9119, "eliminated": 18, "damageTaken": 7567, "timeAliveSeconds": 3661 } },
+    "robby":  { "games": 51, "avgElims": 12.25, "avgDamageDealt": 5479, "avgEliminated": 9.87, "avgDamageTaken": 4612, "avgTimeAliveSeconds": 2714, "kd": 1.24,
+      "max": { "elims": 25, "damageDealt": 8428, "eliminated": 15, "damageTaken": 6899, "timeAliveSeconds": 3565 } },
+    "vinny":  { "games": 20, "avgElims": 10.43, "avgDamageDealt": 4686, "avgEliminated": 10.16, "avgDamageTaken": 4275, "avgTimeAliveSeconds": 2895, "kd": 1.03,
+      "max": { "elims": 19, "damageDealt": 7276, "eliminated": 14, "damageTaken": 5549, "timeAliveSeconds": 3666 } },
+    "kyle":   { "games": 83, "avgElims": 10.71, "avgDamageDealt": 4910, "avgEliminated": 10.68, "avgDamageTaken": 4741, "avgTimeAliveSeconds": 2417, "kd": 1.00,
+      "max": { "elims": 23, "damageDealt": 8667, "eliminated": 17, "damageTaken": 6165, "timeAliveSeconds": 3652 } },
+    "jim":    { "games": 25, "avgElims": 10.56, "avgDamageDealt": 4466, "avgEliminated": 11.68, "avgDamageTaken": 5007, "avgTimeAliveSeconds": 2475, "kd": 0.90,
+      "max": { "elims": 19, "damageDealt": 6312, "eliminated": 19, "damageTaken": 6683, "timeAliveSeconds": 3716 } },
+    "chris":  { "games": 3,  "avgElims": 9.00,  "avgDamageDealt": 4796, "avgEliminated": 10.33, "avgDamageTaken": 4727, "avgTimeAliveSeconds": 2824, "kd": 0.87,
+      "max": { "elims": 9, "damageDealt": 5026, "eliminated": 13, "damageTaken": 5169, "timeAliveSeconds": 3662 } },
+    "mn":     { "games": 82, "avgElims": 8.57,  "avgDamageDealt": 3746, "avgEliminated": 11.78, "avgDamageTaken": 5183, "avgTimeAliveSeconds": 2267, "kd": 0.73,
+      "max": { "elims": 17, "damageDealt": 6145, "eliminated": 18, "damageTaken": 6546, "timeAliveSeconds": 3546 } },
+    "bello":  { "games": 61, "avgElims": 8.20,  "avgDamageDealt": 3790, "avgEliminated": 11.26, "avgDamageTaken": 4708, "avgTimeAliveSeconds": 2448, "kd": 0.73,
+      "max": { "elims": 16, "damageDealt": 5510, "eliminated": 20, "damageTaken": 6710, "timeAliveSeconds": 3278 } },
+    "matt":   { "games": 1,  "avgElims": 8.00,  "avgDamageDealt": 4050, "avgEliminated": 9.00, "avgDamageTaken": 4362, "avgTimeAliveSeconds": 2837, "kd": 0.89,
+      "max": { "elims": 8, "damageDealt": 4050, "eliminated": 9, "damageTaken": 4362, "timeAliveSeconds": 2837 } },
+    "doug":   { "games": 91, "avgElims": 6.45,  "avgDamageDealt": 3223, "avgEliminated": 11.65, "avgDamageTaken": 4119, "avgTimeAliveSeconds": 2377, "kd": 0.55,
+      "max": { "elims": 13, "damageDealt": 5697, "eliminated": 20, "damageTaken": 5560, "timeAliveSeconds": 3777 } }
+  }
+}

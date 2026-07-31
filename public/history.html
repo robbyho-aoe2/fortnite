@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Season History — Fortnite Stat Tracker</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<nav class="top">
+  <span class="brand">🎮 Fortnite Stat Tracker</span>
+  <a href="index.html">Statistics</a>
+  <a href="handicaps.html">Handicaps</a>
+  <a href="moose.html">Moose Score</a>
+  <a href="history.html" class="active">Season History</a>
+  <a href="submit.html">Submit a Game</a>
+</nav>
+
+<div class="wrap">
+  <h1>Season History</h1>
+  <p class="sub">2023–2025 are closed-season archives. 2026 is computed live from the current game log and updates as new games are submitted.</p>
+
+  <div class="year-tabs" id="year-tabs"></div>
+
+  <div class="card">
+    <div class="table-scroll">
+      <table id="season-table">
+        <thead>
+          <tr>
+            <th>Player</th>
+            <th class="num">Games</th>
+            <th class="num">W</th>
+            <th class="num">L</th>
+            <th class="num">T</th>
+            <th class="num">Win%</th>
+          </tr>
+        </thead>
+        <tbody><tr><td colspan="6" class="loading">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+(async function () {
+  const { players, games } = await loadData();
+  const years = ["2023", "2024", "2025", "2026"];
+  let activeYear = "2026";
+
+  const tabsEl = document.getElementById("year-tabs");
+  const tableBody = document.querySelector("#season-table tbody");
+
+  function render() {
+    for (const btn of tabsEl.querySelectorAll("button")) {
+      btn.classList.toggle("active", btn.dataset.year === activeYear);
+    }
+
+    let rows;
+    if (activeYear === "2026") {
+      const games2026 = gamesInYear(games, 2026);
+      rows = players
+        .filter((p) => p.active)
+        .map((p) => ({ p, record: liveRecord(games2026, p.key) }))
+        .filter(({ record }) => record.games > 0)
+        .sort((a, b) => (b.record.winPct ?? 0) - (a.record.winPct ?? 0));
+    } else {
+      rows = players
+        .filter((p) => p.seasonArchive && p.seasonArchive[activeYear])
+        .map((p) => {
+          const a = p.seasonArchive[activeYear];
+          return { p, record: { games: a.games, w: a.w, l: a.l, t: a.t, winPct: a.winPct } };
+        })
+        .sort((a, b) => (b.record.winPct ?? 0) - (a.record.winPct ?? 0));
+    }
+
+    tableBody.innerHTML = "";
+    if (rows.length === 0) {
+      tableBody.appendChild(el("tr", {}, [el("td", { colspan: "6", class: "empty" }, "No data for this season yet.")]));
+      return;
+    }
+    for (const { p, record } of rows) {
+      tableBody.appendChild(el("tr", {}, [
+        el("td", { class: "player-name" }, displayName(p)),
+        el("td", { class: "num" }, fmtNum(record.games, 0)),
+        el("td", { class: "num win" }, fmtNum(record.w, record.w % 1 === 0 ? 0 : 2)),
+        el("td", { class: "num loss" }, fmtNum(record.l, record.l % 1 === 0 ? 0 : 2)),
+        el("td", { class: "num tie" }, fmtNum(record.t, record.t % 1 === 0 ? 0 : 2)),
+        el("td", { class: "num" }, fmtPct(record.winPct)),
+      ]));
+    }
+  }
+
+  for (const year of years) {
+    const btn = el("button", { "data-year": year }, year);
+    btn.addEventListener("click", () => { activeYear = year; render(); });
+    tabsEl.appendChild(btn);
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>

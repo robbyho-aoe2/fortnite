@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Statistics — Fortnite Stat Tracker</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<nav class="top">
+  <span class="brand">🎮 Fortnite Stat Tracker</span>
+  <a href="index.html" class="active">Statistics</a>
+  <a href="handicaps.html">Handicaps</a>
+  <a href="moose.html">Moose Score</a>
+  <a href="history.html">Season History</a>
+  <a href="submit.html">Submit a Game</a>
+</nav>
+
+<div class="wrap">
+  <h1>Statistics — 2026</h1>
+  <p class="sub">Career-average box score stats for the season.</p>
+
+  <div class="year-tabs" id="stat-tabs">
+    <button data-view="averages" class="active">Averages</button>
+    <button data-view="max">Maxes</button>
+  </div>
+
+  <div class="card">
+    <div class="table-scroll">
+      <table id="stats-table">
+        <thead></thead>
+        <tbody><tr><td colspan="7" class="loading">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+(async function () {
+  const { players } = await loadData();
+  const stats = await loadStats();
+  const byKey = playerByKey(players);
+  const tableEl = document.getElementById("stats-table");
+  let view = "averages";
+
+  const rows = Object.entries(stats.players).map(([key, s]) => ({
+    key,
+    player: byKey[key],
+    s,
+  }));
+
+  function renderAverages() {
+    tableEl.querySelector("thead").innerHTML = "";
+    tableEl.querySelector("thead").appendChild(el("tr", {}, [
+      el("th", {}, "Player"),
+      el("th", { class: "num" }, "Games"),
+      el("th", { class: "num" }, "Avg Elims"),
+      el("th", { class: "num" }, "Avg Dmg"),
+      el("th", { class: "num" }, "Avg Elim'd"),
+      el("th", { class: "num" }, "Avg Dmg Taken"),
+      el("th", { class: "num" }, "Avg Time"),
+      el("th", { class: "num" }, "K/D"),
+    ]));
+
+    const sorted = [...rows].sort((a, b) => b.s.kd - a.s.kd);
+    const tbody = tableEl.querySelector("tbody");
+    tbody.innerHTML = "";
+    for (const { player, s } of sorted) {
+      tbody.appendChild(el("tr", {}, [
+        el("td", { class: "player-name" }, displayName(player)),
+        el("td", { class: "num" }, fmtNum(s.games, 0)),
+        el("td", { class: "num" }, fmtNum(s.avgElims)),
+        el("td", { class: "num" }, fmtNum(s.avgDamageDealt, 0)),
+        el("td", { class: "num" }, fmtNum(s.avgEliminated)),
+        el("td", { class: "num" }, fmtNum(s.avgDamageTaken, 0)),
+        el("td", { class: "num" }, fmtTime(s.avgTimeAliveSeconds)),
+        el("td", { class: "num" }, fmtNum(s.kd)),
+      ]));
+    }
+  }
+
+  function renderMax() {
+    tableEl.querySelector("thead").innerHTML = "";
+    tableEl.querySelector("thead").appendChild(el("tr", {}, [
+      el("th", {}, "Player"),
+      el("th", { class: "num" }, "Max Elims"),
+      el("th", { class: "num" }, "Max Dmg"),
+      el("th", { class: "num" }, "Max Elim'd"),
+      el("th", { class: "num" }, "Max Dmg Taken"),
+      el("th", { class: "num" }, "Max Time"),
+    ]));
+
+    const sorted = [...rows].sort((a, b) => (b.s.max?.elims || 0) - (a.s.max?.elims || 0));
+    const tbody = tableEl.querySelector("tbody");
+    tbody.innerHTML = "";
+    for (const { player, s } of sorted) {
+      const m = s.max || {};
+      tbody.appendChild(el("tr", {}, [
+        el("td", { class: "player-name" }, displayName(player)),
+        el("td", { class: "num" }, fmtNum(m.elims, 0)),
+        el("td", { class: "num" }, fmtNum(m.damageDealt, 0)),
+        el("td", { class: "num" }, fmtNum(m.eliminated, 0)),
+        el("td", { class: "num" }, fmtNum(m.damageTaken, 0)),
+        el("td", { class: "num" }, fmtTime(m.timeAliveSeconds)),
+      ]));
+    }
+  }
+
+  function render() {
+    for (const btn of document.querySelectorAll("#stat-tabs button")) {
+      btn.classList.toggle("active", btn.dataset.view === view);
+    }
+    if (view === "averages") renderAverages();
+    else renderMax();
+  }
+
+  for (const btn of document.querySelectorAll("#stat-tabs button")) {
+    btn.addEventListener("click", () => { view = btn.dataset.view; render(); });
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,427 @@
+[
+  {
+    "key": "robby",
+    "alias": "not A theist",
+    "realName": "Robby",
+    "active": true,
+    "baseHC": 6.091120826632188,
+    "strFac": 0.3281051057,
+    "publishedHC": 6.42,
+    "seasonArchive": {
+      "2023": {
+        "games": 133.0,
+        "w": 63.0,
+        "l": 57.0,
+        "t": 13.0,
+        "winPct": 0.5225563909774437
+      },
+      "2024": {
+        "games": 132,
+        "w": 53,
+        "l": 66,
+        "t": 13,
+        "winPct": 0.4507575758
+      },
+      "2025": {
+        "games": 385,
+        "w": 153,
+        "l": 181,
+        "t": 51,
+        "winPct": 0.4636363636
+      },
+      "2026": {
+        "games": 69,
+        "w": 30,
+        "l": 31,
+        "t": 8,
+        "winPct": 0.4927536232
+      }
+    }
+  },
+  {
+    "key": "matt",
+    "alias": "MightyMosaic389",
+    "realName": "Matt",
+    "active": true,
+    "baseHC": 3.562231833420717,
+    "strFac": -0.4090521728,
+    "publishedHC": 3.15,
+    "seasonArchive": {
+      "2023": {
+        "games": 160.0,
+        "w": 65.0,
+        "l": 73.0,
+        "t": 22.0,
+        "winPct": 0.475
+      },
+      "2024": {
+        "games": 165,
+        "w": 82,
+        "l": 63,
+        "t": 20,
+        "winPct": 0.5575757576
+      },
+      "2025": {
+        "games": 141,
+        "w": 53,
+        "l": 74,
+        "t": 14,
+        "winPct": 0.4255319149
+      },
+      "2026": {
+        "games": 3,
+        "w": 1,
+        "l": 2,
+        "t": 0,
+        "winPct": 0.3333333333
+      }
+    }
+  },
+  {
+    "key": "mn",
+    "alias": "garfunkelmoose",
+    "realName": "Mike Nolen",
+    "active": true,
+    "baseHC": 3.7872701070568935,
+    "strFac": -3.309248828e-05,
+    "publishedHC": 3.79,
+    "seasonArchive": {
+      "2023": {
+        "games": 206.0,
+        "w": 98.0,
+        "l": 82.0,
+        "t": 26.0,
+        "winPct": 0.5388349514563107
+      },
+      "2024": {
+        "games": 205,
+        "w": 87,
+        "l": 104,
+        "t": 14,
+        "winPct": 0.4585365854
+      },
+      "2025": {
+        "games": 353,
+        "w": 155,
+        "l": 148,
+        "t": 50,
+        "winPct": 0.5099150142
+      },
+      "2026": {
+        "games": 107,
+        "w": 42,
+        "l": 55,
+        "t": 10,
+        "winPct": 0.4392523364
+      }
+    }
+  },
+  {
+    "key": "doug",
+    "alias": "TrdFrgsn20",
+    "realName": "Doug",
+    "active": true,
+    "baseHC": 2.5160922512986383,
+    "strFac": -0.4503707058,
+    "publishedHC": 2.07,
+    "seasonArchive": {
+      "2023": {
+        "games": 202.0,
+        "w": 74.0,
+        "l": 100.0,
+        "t": 28.0,
+        "winPct": 0.43564356435643564
+      },
+      "2024": {
+        "games": 158,
+        "w": 83,
+        "l": 68,
+        "t": 7,
+        "winPct": 0.5474683544
+      },
+      "2025": {
+        "games": 403,
+        "w": 168,
+        "l": 186,
+        "t": 49,
+        "winPct": 0.4776674938
+      },
+      "2026": {
+        "games": 126,
+        "w": 50,
+        "l": 62,
+        "t": 14,
+        "winPct": 0.4523809524
+      }
+    }
+  },
+  {
+    "key": "kyle",
+    "alias": "StrtldMoose",
+    "realName": "Kyle",
+    "active": true,
+    "baseHC": 4.2300053850642785,
+    "strFac": 0.2362437238,
+    "publishedHC": 4.47,
+    "seasonArchive": {
+      "2023": {
+        "games": 137.0,
+        "w": 61.0,
+        "l": 57.0,
+        "t": 19.0,
+        "winPct": 0.5145985401459854
+      },
+      "2024": {
+        "games": 176,
+        "w": 77,
+        "l": 83,
+        "t": 16,
+        "winPct": 0.4829545455
+      },
+      "2025": {
+        "games": 384,
+        "w": 157,
+        "l": 178,
+        "t": 49,
+        "winPct": 0.47265625
+      },
+      "2026": {
+        "games": 112,
+        "w": 49,
+        "l": 47,
+        "t": 16,
+        "winPct": 0.5089285714
+      }
+    }
+  },
+  {
+    "key": "jim",
+    "alias": "MootCapybara942",
+    "realName": "Jim",
+    "active": true,
+    "baseHC": 4.854716486802771,
+    "strFac": 0.2708040824,
+    "publishedHC": 5.13,
+    "seasonArchive": {
+      "2023": {
+        "games": 102.0,
+        "w": 41.0,
+        "l": 47.0,
+        "t": 14.0,
+        "winPct": 0.47058823529411764
+      },
+      "2024": {
+        "games": 155,
+        "w": 75,
+        "l": 60,
+        "t": 20,
+        "winPct": 0.5483870968
+      },
+      "2025": {
+        "games": 200,
+        "w": 101,
+        "l": 77,
+        "t": 22,
+        "winPct": 0.56
+      },
+      "2026": {
+        "games": 41,
+        "w": 20,
+        "l": 17,
+        "t": 4,
+        "winPct": 0.5365853659
+      }
+    }
+  },
+  {
+    "key": "bello",
+    "alias": "LetMeCook2055",
+    "realName": "Bello",
+    "active": true,
+    "baseHC": 3.662265138470534,
+    "strFac": 0.04242640687,
+    "publishedHC": 3.7,
+    "seasonArchive": {
+      "2023": {
+        "games": 179.0,
+        "w": 78.0,
+        "l": 81.0,
+        "t": 20.0,
+        "winPct": 0.49162011173184356
+      },
+      "2024": {
+        "games": 115.43,
+        "w": 52.56,
+        "l": 49.53,
+        "t": 13.34,
+        "winPct": 0.5131082961
+      },
+      "2025": {
+        "games": 225,
+        "w": 94,
+        "l": 95,
+        "t": 36,
+        "winPct": 0.4977777778
+      },
+      "2026": {
+        "games": 84,
+        "w": 36,
+        "l": 36,
+        "t": 12,
+        "winPct": 0.5
+      }
+    }
+  },
+  {
+    "key": "chris",
+    "alias": "WildingSumo4",
+    "realName": "Chris",
+    "active": true,
+    "baseHC": 5.03738096072771,
+    "strFac": -1.183012702,
+    "publishedHC": 3.85,
+    "seasonArchive": {
+      "2024": {
+        "games": 7,
+        "w": 2,
+        "l": 5,
+        "t": 0,
+        "winPct": 0.2857142857
+      },
+      "2025": {
+        "games": 51,
+        "w": 24,
+        "l": 22,
+        "t": 5,
+        "winPct": 0.5196078431
+      },
+      "2026": {
+        "games": 3,
+        "w": 0,
+        "l": 2,
+        "t": 1,
+        "winPct": 0.1666666667
+      }
+    }
+  },
+  {
+    "key": "collin",
+    "alias": "WeekndCRB",
+    "realName": "Collin",
+    "active": true,
+    "baseHC": 9.75,
+    "strFac": 0.9731740705,
+    "publishedHC": 10.72,
+    "seasonArchive": {
+      "2025": {
+        "games": 332,
+        "w": 152,
+        "l": 129,
+        "t": 51,
+        "winPct": 0.5346385542
+      },
+      "2026": {
+        "games": 39,
+        "w": 20,
+        "l": 13,
+        "t": 6,
+        "winPct": 0.5897435897
+      }
+    }
+  },
+  {
+    "key": "sean",
+    "alias": "Seaningo",
+    "realName": "Sean",
+    "active": true,
+    "baseHC": 6.748445598095644,
+    "strFac": 0.63,
+    "publishedHC": 7.38,
+    "seasonArchive": {
+      "2025": {
+        "games": 371,
+        "w": 160,
+        "l": 158,
+        "t": 53,
+        "winPct": 0.5026954178
+      },
+      "2026": {
+        "games": 108,
+        "w": 62,
+        "l": 34,
+        "t": 12,
+        "winPct": 0.6296296296
+      }
+    }
+  },
+  {
+    "key": "vinny",
+    "alias": "Vinyyy_13",
+    "realName": "Vinny",
+    "active": true,
+    "baseHC": 4.987645257831118,
+    "strFac": 0.1596139069,
+    "publishedHC": 5.15,
+    "seasonArchive": {
+      "2025": {
+        "games": 201,
+        "w": 85,
+        "l": 87,
+        "t": 29,
+        "winPct": 0.4950248756
+      },
+      "2026": {
+        "games": 32,
+        "w": 15,
+        "l": 7,
+        "t": 4,
+        "winPct": 0.53125
+      }
+    }
+  },
+  {
+    "key": "j2",
+    "alias": "JimmyBwell",
+    "realName": "Jimmy",
+    "active": true,
+    "baseHC": 6.150608041430126,
+    "strFac": -1.112075962,
+    "publishedHC": 5.04,
+    "seasonArchive": {
+      "2025": {
+        "games": 447,
+        "w": 219,
+        "l": 181,
+        "t": 47,
+        "winPct": 0.5425055928
+      },
+      "2026": {
+        "games": 118,
+        "w": 44,
+        "l": 62,
+        "t": 12,
+        "winPct": 0.4237288136
+      }
+    }
+  },
+  {
+    "key": "lp",
+    "alias": null,
+    "realName": "LP",
+    "active": false,
+    "baseHC": -2.5,
+    "strFac": 0.8001545261,
+    "publishedHC": -1.7,
+    "seasonArchive": {}
+  },
+  {
+    "key": "kman",
+    "alias": "K-Man2711",
+    "realName": "K-Man",
+    "active": true,
+    "baseHC": 5.0,
+    "strFac": 0,
+    "publishedHC": 5.0,
+    "seasonArchive": {}
+  }
+]

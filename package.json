@@ -1,0 +1,8 @@
+{
+  "name": "fortnite-stat-tracker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node test/solver.test.js"
+  }
+}

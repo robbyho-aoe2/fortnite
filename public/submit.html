@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Submit a Game — Fortnite Stat Tracker</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<nav class="top">
+  <span class="brand">🎮 Fortnite Stat Tracker</span>
+  <a href="index.html">Statistics</a>
+  <a href="handicaps.html">Handicaps</a>
+  <a href="moose.html">Moose Score</a>
+  <a href="history.html">Season History</a>
+  <a href="submit.html" class="active">Submit a Game</a>
+</nav>
+
+<div class="wrap">
+  <h1>Submit a Game</h1>
+  <p class="sub">Pick who was on each team and how many games Team 1 won in the session. Handicaps recompute automatically once this is submitted.</p>
+
+  <div class="card">
+    <form id="submit-form">
+      <div class="field">
+        <label for="date">Date</label>
+        <input type="date" id="date" required />
+      </div>
+
+      <div class="field">
+        <label>Team 1</label>
+        <div class="checkbox-grid" id="team1-grid"></div>
+      </div>
+
+      <div class="field">
+        <label for="team1Score">Team 1 wins (out of this session)</label>
+        <input type="number" id="team1Score" min="0" step="1" required />
+      </div>
+
+      <div class="field">
+        <label>Team 2</label>
+        <div class="checkbox-grid" id="team2-grid"></div>
+      </div>
+
+      <div id="form-message"></div>
+
+      <button type="submit" class="primary" id="submit-btn">Submit Game</button>
+    </form>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+(async function () {
+  const { players } = await loadData();
+  const roster = players.filter((p) => p.active && p.key !== "lp");
+
+  document.getElementById("date").valueAsDate = new Date();
+
+  const team1Grid = document.getElementById("team1-grid");
+  const team2Grid = document.getElementById("team2-grid");
+
+  function buildGrid(gridEl, teamName) {
+    for (const p of roster) {
+      const checkbox = el("input", { type: "checkbox", value: p.key, name: teamName });
+      const label = el("label", {}, [checkbox, document.createTextNode(" " + displayName(p))]);
+      label.classList.add("checkbox-item");
+      gridEl.appendChild(label);
+    }
+  }
+  buildGrid(team1Grid, "team1");
+  buildGrid(team2Grid, "team2");
+
+  function selectedKeys(gridEl) {
+    return [...gridEl.querySelectorAll("input:checked")].map((i) => i.value);
+  }
+
+  // Prevent picking the same player on both teams.
+  function refreshAvailability() {
+    const t1 = new Set(selectedKeys(team1Grid));
+    const t2 = new Set(selectedKeys(team2Grid));
+    for (const input of team1Grid.querySelectorAll("input")) {
+      const item = input.closest(".checkbox-item");
+      const blocked = t2.has(input.value) && !input.checked;
+      item.classList.toggle("disabled", blocked);
+    }
+    for (const input of team2Grid.querySelectorAll("input")) {
+      const item = input.closest(".checkbox-item");
+      const blocked = t1.has(input.value) && !input.checked;
+      item.classList.toggle("disabled", blocked);
+    }
+  }
+  team1Grid.addEventListener("change", refreshAvailability);
+  team2Grid.addEventListener("change", refreshAvailability);
+
+  const form = document.getElementById("submit-form");
+  const messageEl = document.getElementById("form-message");
+  const submitBtn = document.getElementById("submit-btn");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    messageEl.innerHTML = "";
+
+    const payload = {
+      date: document.getElementById("date").value,
+      team1: selectedKeys(team1Grid),
+      team2: selectedKeys(team2Grid),
+      team1Score: Number(document.getElementById("team1Score").value),
+    };
+
+    if (payload.team1.length === 0 || payload.team2.length === 0) {
+      messageEl.appendChild(el("div", { class: "msg error" }, "Both teams need at least one player."));
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Submitting…";
+    try {
+      const res = await fetch("/api/submit-game", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || "Submission failed");
+
+      messageEl.appendChild(el("div", { class: "msg success" },
+        `Saved! Result: ${body.game.winningTeam === 0 ? "Tie" : "Team " + body.game.winningTeam + " won"}. Handicaps have been recomputed.`
+      ));
+      form.reset();
+      document.getElementById("date").valueAsDate = new Date();
+      refreshAvailability();
+    } catch (err) {
+      messageEl.appendChild(el("div", { class: "msg error" }, err.message));
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Submit Game";
+    }
+  });
+})();
+</script>
+</body>
+</html>

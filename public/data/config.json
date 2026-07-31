@@ -1,0 +1,55 @@
+{
+  "raceScale": {
+    "total": 20,
+    "half": 10,
+    "_comment": "A match's win/loss vs. handicap is judged against a fixed 20-game reference scale: breakeven = (team1HC - team2HC) + 10, regardless of how many games were actually played in the session."
+  },
+  "solver": {
+    "tau": 50,
+    "threshold": 0.04,
+    "maxIterations": 350,
+    "passes": 3,
+    "startStep": 0.10,
+    "minStep": 0.01,
+    "decayRate": 0.97,
+    "targetWinRate": 0.5,
+    "improvementEpsilon": 0.001,
+    "noImprovementLimit": 80,
+    "deviationSkipThreshold": 0.005,
+    "minGamesForAdjustment": 10,
+    "minGamesForObjective": 5,
+    "bounds": { "min": 0.25, "max": 10.75 },
+    "pinnedHighBounds": { "min": 9.75, "max": 10.25 },
+    "specialBounds": {
+      "lp": { "min": -4.5, "max": -2.5 }
+    },
+    "_comment": "Coordinate hill-climb: cycles through players, nudging each one's base handicap so that a recency-weighted (tau-decayed), handicap-adjusted win rate converges toward 50% for everyone. The highest-rated non-pinned player is anchored near 10 as a scale reference. Ported from the group's Google Apps Script `singlepass()`."
+  },
+  "strengthFactor": {
+    "shortWindow": { "games": 25, "exponent": 1.5, "scalar": 15 },
+    "longWindow": { "games": 200, "exponent": 1.6, "scalar": 30 },
+    "cap": 0.75,
+    "rampGamesDivisor": 0.05,
+    "_comment": "Current-record momentum layered on top of the solved base handicap: IF(winPct>0.5,1,-1) * MIN((|winPct-0.5|^exponent) * scalar * MIN(games*0.05,1), cap), summed across a short (25-game) and long (200-game) recency window."
+  },
+  "newPlayerDefaultHC": 5.0,
+  "moose": {
+    "effectiveUntil": "2026-07-28",
+    "normalization": {
+      "maxAvgElims": 16.91,
+      "maxAvgDamageDealt": 7505,
+      "minAvgEliminated": 9.00,
+      "minAvgDamageTaken": 4109,
+      "maxAvgTimeAliveSeconds": 2898
+    },
+    "weights": {
+      "elims": 0.958,
+      "damageDealt": 0.958,
+      "eliminated": 0.425,
+      "damageTaken": 0.145,
+      "timeAlive": 0.444
+    },
+    "regression": { "slope": 0.6238, "intercept": -7.6609, "shift": 0.5931 },
+    "_comment": "Moose Score: PER-style rating anchored so Collin's career average = 10. raw = sum(weight * normalized-stat); moose = slope*raw + intercept + shift. Locked constants from the group spec; recalibration is a deliberate scheduled event, never automatic."
+  }
+}
