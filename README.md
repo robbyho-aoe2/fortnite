@@ -108,21 +108,33 @@ The UI shows the alias as the primary name. `lp` is excluded from the leaderboar
 the submission form, but stays in the solver's roster since historical games involving them still affect
 everyone else's numbers.
 
-## Deployment (Cloudflare Pages)
+## Deployment
 
-1. In the Cloudflare dashboard: **Workers & Pages → Create → Pages → Connect to Git**, pick this repo.
-2. Build settings: **no build command**, build output directory = `public`.
-3. Add these as **Pages secrets/environment variables** (Settings → Environment variables):
+Deploys via **GitHub Actions** (`.github/workflows/deploy.yml`), not Cloudflare's own Git-connected
+build system. Cloudflare's "Builds" feature hit an unresolvable account-level bug during setup (a stale
+build-token attribution to a departed org member that neither recreating the token nor recreating the
+project fixed) — GitHub Actions runs `wrangler pages deploy` instead, sidestepping it entirely. Same
+end result: push to `main`, site redeploys.
+
+**One-time setup:**
+
+1. The Cloudflare Pages project (`fortnite`) already exists — created via Workers & Pages, connected to
+   this repo, with its own Git-triggered build **disabled** (Settings → Builds) so it doesn't also try
+   to deploy and fail alongside the Actions workflow.
+2. In **this GitHub repo's** Settings → Secrets and variables → **Actions**, add:
+   - `CLOUDFLARE_API_TOKEN` — a token scoped to **Account → Cloudflare Pages → Edit**
+   - `CLOUDFLARE_ACCOUNT_ID` — the Cloudflare account ID
+3. In the **Cloudflare Pages project's** Settings → Variables and Secrets, add (these are read by
+   `/api/submit-game` at runtime, separate from the two above which are only used at deploy time):
    - `GITHUB_TOKEN` — a fine-grained GitHub Personal Access Token scoped to **only this repo**, with
      **Contents: Read and write** permission. This is what lets the submit function commit new games.
    - `GITHUB_OWNER` — `robbyho-aoe2`
    - `GITHUB_REPO` — `fortnite`
    - `GITHUB_BRANCH` — `main`
-4. Deploy. Every push to `main` (including the automated commits from `/api/submit-game`) redeploys
-   the site automatically.
+4. Push to `main` (or run the workflow manually via Actions → Deploy to Cloudflare Pages → Run workflow).
 
 No database, no separate server — Cloudflare Pages + Functions + this repo's own `data/` files are the
-entire stack.
+entire stack; GitHub Actions is just the delivery mechanism.
 
 ## Roadmap (not built yet)
 
