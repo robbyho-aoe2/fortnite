@@ -67,15 +67,27 @@ Ported faithfully from the group's original Google Apps Script (`singlepass()`).
 1. **Base handicap** — a coordinate hill-climb over the full game log. Every match already has
    a "games to tie" breakeven derived from the two teams' handicap totals (`(team1HC - team2HC) + 10`,
    on a fixed 20-game reference scale). The solver repeatedly nudges each player's handicap up or down so
-   that their recency-weighted (exponential decay, `tau=50` games), handicap-adjusted win rate converges
-   toward 50% — i.e. it finds the handicaps that would have made everyone's history look like a coin flip.
-   One player is anchored near 10 as a scale reference; "lp" is hard-pinned to a fixed negative band, both
-   matching the original script's behavior. The objective being minimized (the spread between the
-   best and worst recency-weighted win rate) **excludes LP** — it's a filler, not a real player, so its
-   win rate is noise; including it made the solver chase a spread that wasn't real, causing every new
-   game to visibly move players who weren't even in it. This runs after *every* submitted game (not in
-   batches), so getting that exclusion right matters — with it, one new game nudges published handicaps
-   by a few hundredths to a few tenths, not whole points.
+   that their recency-weighted (exponential decay, `tau=50` games) win rate converges toward 50% — i.e. it
+   finds the handicaps that would have made everyone's history look like a coin flip. One player is
+   anchored near 10 as a scale reference; "lp" is hard-pinned to a fixed negative band, both matching the
+   original script's behavior. The objective being minimized (the spread between the best and worst
+   recency-weighted win rate) **excludes LP** — it's a filler, not a real player, so its win rate is
+   noise; including it made the solver chase a spread that wasn't real.
+
+   **A game's win/loss/tie is decided once and never re-derived.** `gradeMatch` computes it at submission
+   time (using whatever handicaps are current then) and stores the result on the game as `winningTeam` —
+   from then on it's history, read as a fixed fact by `weightedWinRate`/`hiLoSpread`. This mirrors the
+   original spreadsheet exactly: its per-game winner columns (`Z`/`AA`/`AB`/`AC` for wins, `AH`-`AO` for
+   ties) read a fixed value per game row, not a live formula against the current handicap column. An
+   earlier version of this port got this backwards — it recomputed each game's outcome from whatever
+   handicaps the solver currently had in hand, which meant nudging any one player's handicap silently
+   rewrote the recorded outcome of every game they'd ever played, cascading into their past teammates' and
+   opponents' win rates too, and from there into *their* teammates and opponents — a single edited game
+   could swing players who were never even in it by over a point. With grading fixed at submission time,
+   a recompute only ever moves the handicaps of players who were actually in the game that changed (plus
+   a small, one-time settling the first time this solver runs against handicaps that were set from an
+   external source, like the group's full multi-year spreadsheet history) — everyone else's number holds
+   exactly still. This runs after *every* submitted game (not in batches), so that guarantee matters.
 2. **Strength factor** — a current-record momentum nudge layered on top, from two recency windows
    (last 25 games and last 200 games) of simple win% deviation from 50%.
 
@@ -88,8 +100,7 @@ All the tunable constants (`tau`, iteration limits, step sizes, bounds, window s
 per recompute (submit, edit, or delete all count) — appended and trimmed to the most recent 250 entries
 by `resolveAndCommit()` in `lib/submit-game.js`. The Handicaps page uses it (`hcChangeOver()` in `app.js`)
 to show how much a player's number moved since the last recompute and over the last 20, instead of a
-static win/loss column — read as "recomputes ago," not "calendar games ago," since a recompute can move
-someone who wasn't even in the triggering game (see the LP-exclusion note above). A new player with fewer
+static win/loss column — read as "recomputes ago," not "calendar games ago." A new player with fewer
 snapshots than the window, or no history at all yet, shows "—" rather than a misleading partial number.
 
 **Pending players.** A player can exist in `players.json` (so they're selectable for a game) without

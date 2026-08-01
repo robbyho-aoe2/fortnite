@@ -24,7 +24,7 @@
     "specialBounds": {
       "lp": { "min": -4.5, "max": -2.5 }
     },
-    "_comment": "Coordinate hill-climb: cycles through players, nudging each one's base handicap so that a recency-weighted (tau-decayed), handicap-adjusted win rate converges toward 50% for everyone. The highest-rated non-pinned player is anchored near 10 as a scale reference. Ported from the group's Google Apps Script `singlepass()`."
+    "_comment": "Coordinate hill-climb: cycles through players, nudging each one's base handicap so that a recency-weighted (tau-decayed) win rate against each game's already-decided outcome converges toward 50% for everyone. Win/loss/tie per game is fixed at submission time (see gradeMatch) and never re-derived during the solve — only the handicaps move. The highest-rated non-pinned player is anchored near 10 as a scale reference. Ported from the group's Google Apps Script `singlepass()`."
   },
   "strengthFactor": {
     "shortWindow": { "games": 25, "exponent": 1.5, "scalar": 15 },

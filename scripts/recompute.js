@@ -37,7 +37,6 @@ const { baseHC, strFacByPlayer, publishedHC } = recomputeAllHandicaps(
   currentBaseHC,
   games,
   rosterOrder,
-  config.raceScale,
   config.solver,
   config.strengthFactor
 );

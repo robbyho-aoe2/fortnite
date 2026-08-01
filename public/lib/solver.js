@@ -43,12 +43,6 @@ function gradeMatch(team1HCTotal, team2HCTotal, team1Score, raceScale) {
   return margin > 0 ? 1 : 2;
 }
 
-function gradeGame(game, hcByPlayer, raceScale) {
-  const t1 = teamHCTotal(game.team1, hcByPlayer);
-  const t2 = teamHCTotal(game.team2, hcByPlayer);
-  return gradeMatch(t1, t2, game.team1Score, raceScale);
-}
-
 // Games are assumed sorted oldest -> newest. Returns, per player key, their games
 // in most-recent-first order (rank 1 = most recent).
 function buildPlayerGameIndex(games, rosterOrder) {
@@ -66,40 +60,50 @@ function buildPlayerGameIndex(games, rosterOrder) {
   return index; // index[key][0] is that player's most recent game
 }
 
-function resultForPlayer(entry, hcByPlayer, raceScale) {
-  const winner = gradeGame(entry.game, hcByPlayer, raceScale);
+// A game's win/loss/tie is decided once, at submission time (gradeMatch, using
+// whatever handicaps were current then), and stored on the game as
+// `winningTeam` — it is history, not a live computation. The spreadsheet this
+// was ported from works the same way: its per-game winner columns read a
+// fixed per-row result, not a live formula against the current handicap
+// column. Re-deriving it here from the handicaps being solved *right now*
+// would mean every nudge to a player's HC retroactively rewrites the outcome
+// of every game they've ever played — cascading into their past teammates'
+// and opponents' win rates too, and far beyond, which is exactly the kind of
+// runaway per-game swing this solver is supposed to avoid.
+function resultForPlayer(entry) {
+  const winner = entry.game.winningTeam;
   if (winner === 0) return 0.5;
   return winner === entry.team ? 1 : 0;
 }
 
-function weightedWinRate(playerEntries, hcByPlayer, raceScale, tau) {
+function weightedWinRate(playerEntries, tau) {
   if (playerEntries.length === 0) return 0.5;
   let weightSum = 0;
   let resultSum = 0;
   for (let rank = 1; rank <= playerEntries.length; rank++) {
     const weight = Math.exp(-(rank - 1) / tau);
-    resultSum += weight * resultForPlayer(playerEntries[rank - 1], hcByPlayer, raceScale);
+    resultSum += weight * resultForPlayer(playerEntries[rank - 1]);
     weightSum += weight;
   }
   return weightSum > 0 ? resultSum / weightSum : 0.5;
 }
 
-function simpleWinRate(playerEntries, windowSize, hcByPlayer, raceScale) {
+function simpleWinRate(playerEntries, windowSize) {
   const windowed = playerEntries.slice(0, windowSize);
   if (windowed.length === 0) return { games: 0, winPct: 0.5 };
   let sum = 0;
-  for (const entry of windowed) sum += resultForPlayer(entry, hcByPlayer, raceScale);
+  for (const entry of windowed) sum += resultForPlayer(entry);
   return { games: windowed.length, winPct: sum / windowed.length };
 }
 
-function hiLoSpread(rosterOrder, playerIndex, hcByPlayer, raceScale, tau, minGames) {
+function hiLoSpread(rosterOrder, playerIndex, tau, minGames) {
   let hi = -Infinity;
   let lo = Infinity;
   let any = false;
   for (const key of rosterOrder) {
     const entries = playerIndex[key];
     if (entries.length < minGames) continue;
-    const rate = weightedWinRate(entries, hcByPlayer, raceScale, tau);
+    const rate = weightedWinRate(entries, tau);
     hi = Math.max(hi, rate);
     lo = Math.min(lo, rate);
     any = true;
@@ -118,7 +122,7 @@ function clamp(value, bounds) {
 }
 
 // One full hill-climb pass. `initialHC` is a { key: number } map, mutated copy returned.
-function singlePassSolve(initialHC, games, rosterOrder, raceScale, cfg) {
+function singlePassSolve(initialHC, games, rosterOrder, cfg) {
   const hc = { ...initialHC };
   const playerIndex = buildPlayerGameIndex(games, rosterOrder);
 
@@ -148,7 +152,7 @@ function singlePassSolve(initialHC, games, rosterOrder, raceScale, cfg) {
   let cellIndex = 0;
 
   for (let iter = 0; iter < cfg.maxIterations; iter++) {
-    const objective = hiLoSpread(objectiveRoster, playerIndex, hc, raceScale, cfg.tau, cfg.minGamesForObjective);
+    const objective = hiLoSpread(objectiveRoster, playerIndex, cfg.tau, cfg.minGamesForObjective);
 
     if (objective < bestObjective - cfg.improvementEpsilon) {
       bestObjective = objective;
@@ -169,7 +173,7 @@ function singlePassSolve(initialHC, games, rosterOrder, raceScale, cfg) {
       continue;
     }
 
-    const rate = weightedWinRate(entries, hc, raceScale, cfg.tau);
+    const rate = weightedWinRate(entries, cfg.tau);
     const deviation = rate - cfg.targetWinRate;
 
     if (Math.abs(deviation) < cfg.deviationSkipThreshold) {
@@ -191,21 +195,21 @@ function singlePassSolve(initialHC, games, rosterOrder, raceScale, cfg) {
   return bestHC;
 }
 
-function multiPassSolve(initialHC, games, rosterOrder, raceScale, cfg) {
+function multiPassSolve(initialHC, games, rosterOrder, cfg) {
   let hc = { ...initialHC };
   for (let p = 0; p < cfg.passes; p++) {
-    hc = singlePassSolve(hc, games, rosterOrder, raceScale, cfg);
+    hc = singlePassSolve(hc, games, rosterOrder, cfg);
   }
   return hc;
 }
 
 // Strength factor: current-record momentum on top of the solved base HC.
-function computeStrengthFactor(playerEntries, hcByPlayer, raceScale, cfg) {
+function computeStrengthFactor(playerEntries, cfg) {
   const totalGames = playerEntries.length;
   const rampFactor = Math.min(totalGames * cfg.rampGamesDivisor, 1);
 
   function windowFactor(windowCfg) {
-    const { winPct } = simpleWinRate(playerEntries, windowCfg.games, hcByPlayer, raceScale);
+    const { winPct } = simpleWinRate(playerEntries, windowCfg.games);
     const sign = winPct > 0.5 ? 1 : -1;
     const magnitude = Math.pow(Math.abs(winPct - 0.5), windowCfg.exponent) * windowCfg.scalar * rampFactor;
     return sign * Math.min(magnitude, cfg.cap);
@@ -215,14 +219,14 @@ function computeStrengthFactor(playerEntries, hcByPlayer, raceScale, cfg) {
 }
 
 // Full pipeline: solve base HCs across the whole log, then layer strength factor on top.
-function recomputeAllHandicaps(currentBaseHC, games, rosterOrder, raceScale, solverCfg, strengthCfg) {
-  const baseHC = multiPassSolve(currentBaseHC, games, rosterOrder, raceScale, solverCfg);
+function recomputeAllHandicaps(currentBaseHC, games, rosterOrder, solverCfg, strengthCfg) {
+  const baseHC = multiPassSolve(currentBaseHC, games, rosterOrder, solverCfg);
   const playerIndex = buildPlayerGameIndex(games, rosterOrder);
 
   const strFacByPlayer = {};
   const publishedHC = {};
   for (const key of rosterOrder) {
-    const strFac = computeStrengthFactor(playerIndex[key], baseHC, raceScale, strengthCfg);
+    const strFac = computeStrengthFactor(playerIndex[key], strengthCfg);
     strFacByPlayer[key] = strFac;
     publishedHC[key] = (baseHC[key] || 0) + strFac;
   }
@@ -234,7 +238,6 @@ export {
   computeBreakeven,
   teamHCTotal,
   gradeMatch,
-  gradeGame,
   buildPlayerGameIndex,
   weightedWinRate,
   hiLoSpread,
