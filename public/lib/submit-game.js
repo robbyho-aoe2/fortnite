@@ -5,7 +5,7 @@
 // back to GitHub. That commit triggers a normal GitHub Pages redeploy.
 
 import { getFile, putFile } from "./github.js";
-import { recomputeAllHandicaps, computeBreakeven, teamHCTotal } from "./solver.js";
+import { recomputeAllHandicaps, computeBreakeven, gradeMatch, teamHCTotal } from "./solver.js";
 import { repoConfig } from "./repo-config.js";
 
 const GAMES_PATH = "public/data/games.json";
@@ -93,8 +93,11 @@ function buildGameRecord(payload, players, raceConfig, id) {
   const hcByKey = Object.fromEntries(players.map((p) => [p.key, p.publishedHC || 0]));
   const t1Total = teamHCTotal(payload.team1, hcByKey);
   const t2Total = teamHCTotal(payload.team2, hcByKey);
+  // The stored record uses the same raw-fractional-threshold-plus-tie-zone
+  // grading as the solver (gradeMatch), not the rounded display breakeven —
+  // a game within one win of the target is a tie, not a coin-flip win/loss.
+  const winningTeam = gradeMatch(t1Total, t2Total, scaledTeam1Score, raceConfig.raceScale);
   const { team1Threshold, team2Threshold } = computeBreakeven(t1Total, t2Total, raceConfig.raceScale);
-  const winningTeam = scaledTeam1Score > team1Threshold ? 1 : scaledTeam1Score < team1Threshold ? 2 : 0;
 
   return {
     game: {

@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import assert from "assert";
 import { fileURLToPath } from "url";
-import { recomputeAllHandicaps, computeBreakeven } from "../public/lib/solver.js";
+import { recomputeAllHandicaps, computeBreakeven, gradeMatch } from "../public/lib/solver.js";
 import { computeMooseScore } from "../public/lib/moose.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -34,6 +34,17 @@ const higherTeam1 = computeBreakeven(14.5, 10, config.raceScale);
 assert.strictEqual(higherTeam1.team1Threshold, 15, "team1 (higher HC) should round up on an exact half");
 assert.strictEqual(higherTeam1.team2Threshold, 5, "team2 (lower HC) should round down on an exact half");
 console.log("tie-break rounding ok");
+
+console.log("\n--- Sanity: gradeMatch uses the raw fractional breakeven + tie zone, not the rounded display one ---");
+// Real historical example: robby+doug (score 10) vs kyle+bello. Raw breakeven
+// worked out to ~10.71, a margin of ~0.71 — within the tie zone, so this
+// should grade as a tie even though the rounded *display* breakeven (11)
+// would suggest a clean loss.
+assert.strictEqual(gradeMatch(8.607213078, 7.892270524, 10, config.raceScale), 0, "a game within one win of the raw breakeven should grade as a tie");
+// A clear win/loss (margin >= 1) should still resolve normally.
+assert.strictEqual(gradeMatch(5, 5, 12, config.raceScale), 1, "a margin past the tie zone should be a clear win");
+assert.strictEqual(gradeMatch(5, 5, 8, config.raceScale), 2, "a margin past the tie zone should be a clear loss");
+console.log("gradeMatch tie-zone ok");
 
 console.log("\n--- Re-running solver from current snapshot (should stay close) ---");
 const start = Date.now();

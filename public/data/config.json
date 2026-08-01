@@ -2,7 +2,8 @@
   "raceScale": {
     "total": 20,
     "half": 10,
-    "_comment": "A match's win/loss vs. handicap is judged against a fixed 20-game reference scale: breakeven = (team1HC - team2HC) + 10, regardless of how many games were actually played in the session."
+    "tieZone": 1,
+    "_comment": "A match's win/loss vs. handicap is judged against a fixed 20-game reference scale: breakeven = (team1HC - team2HC) + 10, regardless of how many games were actually played in the session. Grading (win/loss/tie, for both the solver and the stored record) uses this raw fractional breakeven directly, not the rounded display version — and counts anything within `tieZone` wins of it as a tie, since you can't score partial wins and a game that close could have gone either way. The rounded whole-number breakeven (see computeBreakeven) is only for the pre-game 'wins needed to tie' target display."
   },
   "solver": {
     "tau": 50,

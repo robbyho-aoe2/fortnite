@@ -24,8 +24,12 @@
     <div class="field">
       <label>Who's playing?</label>
       <div class="checkbox-grid" id="pool-grid"></div>
+      <button type="button" class="link-button" id="expand-pool-btn">Expand to all players</button>
     </div>
-    <button type="button" class="primary" id="generate-btn" style="margin-top: 16px;">Generate Balanced Teams</button>
+    <div style="display: flex; gap: 10px; margin-top: 16px;">
+      <button type="button" class="primary" id="generate-btn">Generate Balanced Teams</button>
+      <button type="button" class="primary" id="custom-teams-btn" style="background: var(--surface-2); color: var(--text);">Make Custom Teams</button>
+    </div>
 
     <div class="table-scroll" id="splits-wrap" style="margin-top: 16px; display: none;">
       <table id="splits-table">
@@ -43,7 +47,7 @@
     </div>
   </div>
 
-  <h1>Build Teams &amp; Submit Result</h1>
+  <h1 id="build-teams-heading">Build Teams &amp; Submit Result</h1>
   <p class="sub">Set the two teams (or use a split from Auto Teams above), then log the result once the games are played. Handicaps recompute automatically once this is submitted.</p>
 
   <div class="card">
@@ -84,17 +88,39 @@
 
       <div id="form-message"></div>
 
-      <button type="submit" class="primary" id="submit-btn">Submit Game</button>
+      <div style="display: flex; gap: 10px;">
+        <button type="submit" class="primary" id="submit-btn">Submit Game</button>
+        <button type="button" class="link-button" id="cancel-edit-btn" style="display: none;">Cancel edit</button>
+      </div>
     </form>
+  </div>
+
+  <h1>Your Recent Submissions</h1>
+  <p class="sub">Submissions can be corrected (players, score, date) for 24 hours after they're logged.</p>
+  <div class="card">
+    <div class="table-scroll">
+      <table id="recent-submissions-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Team 1</th>
+            <th>Team 2</th>
+            <th class="num">Score</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </div>
 </div>
 
 <script src="app.js"></script>
 <script type="module">
-import { submitGame } from "./lib/submit-game.js";
+import { submitGame, editGame, isEditable } from "./lib/submit-game.js";
 
 (async function () {
-  const { players, config } = await loadData();
+  const { players, games, config } = await loadData();
   const byKey = playerByKey(players);
   const roster = players.filter((p) => p.active && p.key !== "lp");
 
@@ -102,12 +128,30 @@ import { submitGame } from "./lib/submit-game.js";
 
   // ---------- Auto Teams ----------
   const poolGrid = document.getElementById("pool-grid");
-  for (const p of roster) {
+
+  // Most-active players first, so the people who actually play regularly
+  // aren't buried below one-off/inactive names.
+  const games2026 = gamesInYear(games, 2026);
+  const gamesPlayed2026 = Object.fromEntries(roster.map((p) => [p.key, liveRecord(games2026, p.key, byKey, config.raceScale).games]));
+  const sortedRoster = [...roster].sort((a, b) => gamesPlayed2026[b.key] - gamesPlayed2026[a.key]);
+
+  // These three barely play — keep them out of the way by default, but one
+  // click away for the nights they do show up.
+  const HIDDEN_BY_DEFAULT = new Set(["kman", "chris", "matt"]);
+
+  for (const p of sortedRoster) {
     const checkbox = el("input", { type: "checkbox", value: p.key });
     const label = el("label", {}, [checkbox, document.createTextNode(" " + displayName(p))]);
     label.classList.add("checkbox-item");
+    if (HIDDEN_BY_DEFAULT.has(p.key)) label.classList.add("pool-extra");
     poolGrid.appendChild(label);
   }
+
+  const expandPoolBtn = document.getElementById("expand-pool-btn");
+  expandPoolBtn.addEventListener("click", () => {
+    const expanded = poolGrid.classList.toggle("expanded");
+    expandPoolBtn.textContent = expanded ? "Show fewer players" : "Expand to all players";
+  });
 
   function poolSelection() {
     return [...poolGrid.querySelectorAll("input:checked")].map((i) => i.value);
@@ -151,6 +195,10 @@ import { submitGame } from "./lib/submit-game.js";
     }
   });
 
+  document.getElementById("custom-teams-btn").addEventListener("click", () => {
+    document.getElementById("build-teams-heading").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
   // ---------- Manual team builder ----------
   const team1Grid = document.getElementById("team1-grid");
   const team2Grid = document.getElementById("team2-grid");
@@ -182,7 +230,7 @@ import { submitGame } from "./lib/submit-game.js";
     setSelected(team2Grid, teamB);
     refreshAvailability();
     updateMatchupPreview();
-    document.getElementById("submit-form").scrollIntoView({ behavior: "smooth" });
+    document.getElementById("build-teams-heading").scrollIntoView({ behavior: "smooth" });
   }
 
   // Prevent picking the same player on both teams.
@@ -233,10 +281,71 @@ import { submitGame } from "./lib/submit-game.js";
   roundsInput.addEventListener("input", updateRoundsUI);
   updateRoundsUI();
 
+  // ---------- Recent submissions (editable for 24h) ----------
+  const recentBody = document.querySelector("#recent-submissions-table tbody");
+  const submitBtn = document.getElementById("submit-btn");
+  const cancelEditBtn = document.getElementById("cancel-edit-btn");
+  let editingGameId = null;
+
+  function renderRecentSubmissions() {
+    recentBody.innerHTML = "";
+    const editable = games.filter((g) => isEditable(g.id)).sort((a, b) => (a.id < b.id ? 1 : -1));
+    if (editable.length === 0) {
+      recentBody.appendChild(el("tr", {}, [el("td", { colspan: "5", class: "empty" }, "No submissions in the last 24 hours.")]));
+      return;
+    }
+    for (const g of editable) {
+      const editBtn = el("button", { type: "button", class: "primary" }, "Edit");
+      editBtn.style.padding = "6px 12px";
+      editBtn.style.fontSize = "0.85rem";
+      editBtn.addEventListener("click", () => startEdit(g));
+      recentBody.appendChild(el("tr", {}, [
+        el("td", {}, g.date),
+        el("td", {}, g.team1.map((k) => displayName(byKey[k])).join(", ")),
+        el("td", {}, g.team2.map((k) => displayName(byKey[k])).join(", ")),
+        el("td", { class: "num" }, fmtNum(g.rawTeam1Score ?? g.team1Score, 0)),
+        el("td", {}, editBtn),
+      ]));
+    }
+  }
+  renderRecentSubmissions();
+
+  function startEdit(game) {
+    editingGameId = game.id;
+    setSelected(team1Grid, game.team1);
+    setSelected(team2Grid, game.team2);
+    refreshAvailability();
+    updateMatchupPreview();
+    document.getElementById("date").value = game.date;
+    const rounds = game.roundsPlayed || config.raceScale.total;
+    completedCheckbox.checked = rounds >= config.raceScale.total;
+    roundsInput.value = rounds;
+    updateRoundsUI();
+    document.getElementById("team1Score").value = game.rawTeam1Score ?? game.team1Score;
+    submitBtn.textContent = "Update Game";
+    cancelEditBtn.style.display = "inline-block";
+    document.getElementById("build-teams-heading").scrollIntoView({ behavior: "smooth" });
+  }
+
+  function stopEditing() {
+    editingGameId = null;
+    submitBtn.textContent = "Submit Game";
+    cancelEditBtn.style.display = "none";
+  }
+
+  cancelEditBtn.addEventListener("click", () => {
+    stopEditing();
+    form.reset();
+    document.getElementById("date").valueAsDate = new Date();
+    completedCheckbox.checked = true;
+    updateRoundsUI();
+    refreshAvailability();
+    updateMatchupPreview();
+  });
+
   // ---------- Submit ----------
   const form = document.getElementById("submit-form");
   const messageEl = document.getElementById("form-message");
-  const submitBtn = document.getElementById("submit-btn");
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -258,9 +367,19 @@ import { submitGame } from "./lib/submit-game.js";
     }
 
     submitBtn.disabled = true;
-    submitBtn.textContent = "Submitting…";
+    submitBtn.textContent = editingGameId ? "Updating…" : "Submitting…";
     try {
-      const result = await submitGame(payload);
+      const result = editingGameId
+        ? await editGame(editingGameId, payload)
+        : await submitGame(payload);
+
+      if (editingGameId) {
+        messageEl.appendChild(el("div", { class: "msg success" },
+          `Updated! Result: ${result.game.winningTeam === 0 ? "Tie" : "Team " + result.game.winningTeam + " won"}. Reloading…`
+        ));
+        setTimeout(() => window.location.reload(), 1200);
+        return;
+      }
 
       messageEl.appendChild(el("div", { class: "msg success" },
         `Saved! Result: ${result.game.winningTeam === 0 ? "Tie" : "Team " + result.game.winningTeam + " won"}. Handicaps have been recomputed.`
@@ -275,7 +394,7 @@ import { submitGame } from "./lib/submit-game.js";
       messageEl.appendChild(el("div", { class: "msg error" }, err.message));
     } finally {
       submitBtn.disabled = false;
-      submitBtn.textContent = "Submit Game";
+      submitBtn.textContent = editingGameId ? "Update Game" : "Submit Game";
     }
   });
 })();

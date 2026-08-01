@@ -141,6 +141,21 @@ input[type="date"], input[type="number"] {
 .checkbox-item input { accent-color: var(--accent); }
 .checkbox-item.disabled { opacity: 0.35; pointer-events: none; }
 
+.pool-extra { display: none; }
+#pool-grid.expanded .pool-extra { display: flex; }
+
+.link-button {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 6px 0;
+  align-self: flex-start;
+  text-decoration: underline;
+}
+.link-button:hover { opacity: 0.8; }
+
 button.primary {
   background: var(--accent);
   color: white;

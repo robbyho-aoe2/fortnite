@@ -58,13 +58,13 @@
 <script src="app.js"></script>
 <script>
 (async function () {
-  const { players, games } = await loadData();
+  const { players, games, config } = await loadData();
   const byKey = playerByKey(players);
   const games2026 = gamesInYear(games, 2026);
 
   const visiblePlayers = players.filter((p) => p.active);
   const rows = visiblePlayers
-    .map((p) => ({ p, record: liveRecord(games2026, p.key) }))
+    .map((p) => ({ p, record: liveRecord(games2026, p.key, byKey, config.raceScale) }))
     .sort((a, b) => (b.p.publishedHC || 0) - (a.p.publishedHC || 0));
 
   const tbody = document.querySelector("#leaderboard tbody");
@@ -96,12 +96,13 @@
   for (const g of recent) {
     const t1Names = g.team1.map((k) => displayName(byKey[k])).join(", ");
     const t2Names = g.team2.map((k) => displayName(byKey[k])).join(", ");
-    const resultClass = g.winningTeam === 0 ? "tie" : "win";
-    const resultText = g.winningTeam === 0 ? "Tie" : g.winningTeam === 1 ? "Team 1 won" : "Team 2 won";
+    const winningTeam = deriveWinningTeam(g, byKey, config.raceScale);
+    const resultClass = winningTeam === 0 ? "tie" : "win";
+    const resultText = winningTeam === 0 ? "Tie" : winningTeam === 1 ? "Team 1 won" : "Team 2 won";
     recentBody.appendChild(el("tr", {}, [
       el("td", {}, g.date),
-      el("td", { class: g.winningTeam === 1 ? "win" : "" }, t1Names),
-      el("td", { class: g.winningTeam === 2 ? "win" : "" }, t2Names),
+      el("td", { class: winningTeam === 1 ? "win" : "" }, t1Names),
+      el("td", { class: winningTeam === 2 ? "win" : "" }, t2Names),
       el("td", { class: "num" }, String(g.team1Score)),
       el("td", { class: resultClass }, resultText),
     ]));

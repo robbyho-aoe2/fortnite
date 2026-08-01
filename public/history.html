@@ -44,7 +44,8 @@
 <script src="app.js"></script>
 <script>
 (async function () {
-  const { players, games } = await loadData();
+  const { players, games, config } = await loadData();
+  const byKey = playerByKey(players);
   const years = ["2023", "2024", "2025", "2026"];
   let activeYear = "2026";
 
@@ -61,7 +62,7 @@
       const games2026 = gamesInYear(games, 2026);
       rows = players
         .filter((p) => p.active)
-        .map((p) => ({ p, record: liveRecord(games2026, p.key) }))
+        .map((p) => ({ p, record: liveRecord(games2026, p.key, byKey, config.raceScale) }))
         .filter(({ record }) => record.games > 0)
         .sort((a, b) => (b.record.winPct ?? 0) - (a.record.winPct ?? 0));
     } else {

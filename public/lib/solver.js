@@ -31,14 +31,22 @@ function teamHCTotal(team, hcByPlayer) {
   return team.reduce((sum, key) => sum + (hcByPlayer[key] || 0), 0);
 }
 
+// Actual grading (as opposed to the rounded pre-game display above) uses the
+// raw fractional breakeven directly, and calls it a tie whenever the actual
+// score lands within `tieZone` wins of that line — you can't score a partial
+// win, so a game that close could just as easily have gone the other way.
 // 1 = team1 win, 2 = team2 win, 0 = tie
+function gradeMatch(team1HCTotal, team2HCTotal, team1Score, raceScale) {
+  const rawTeam1Threshold = (team1HCTotal - team2HCTotal) + raceScale.half;
+  const margin = team1Score - rawTeam1Threshold;
+  if (Math.abs(margin) < (raceScale.tieZone ?? 1)) return 0;
+  return margin > 0 ? 1 : 2;
+}
+
 function gradeGame(game, hcByPlayer, raceScale) {
   const t1 = teamHCTotal(game.team1, hcByPlayer);
   const t2 = teamHCTotal(game.team2, hcByPlayer);
-  const { team1Threshold } = computeBreakeven(t1, t2, raceScale);
-  if (game.team1Score > team1Threshold) return 1;
-  if (game.team1Score < team1Threshold) return 2;
-  return 0;
+  return gradeMatch(t1, t2, game.team1Score, raceScale);
 }
 
 // Games are assumed sorted oldest -> newest. Returns, per player key, their games
@@ -225,6 +233,7 @@ function recomputeAllHandicaps(currentBaseHC, games, rosterOrder, raceScale, sol
 export {
   computeBreakeven,
   teamHCTotal,
+  gradeMatch,
   gradeGame,
   buildPlayerGameIndex,
   weightedWinRate,
