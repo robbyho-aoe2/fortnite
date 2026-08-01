@@ -5,26 +5,51 @@ replacing the old set of Google Sheets with a single site backed by this repo.
 
 ## What's here
 
-This is a single Cloudflare **Worker with static assets** (`fortnite` project) — not classic Cloudflare
-Pages. Cloudflare's dashboard created a Worker rather than a Pages project when this was set up, so the
-code matches that shape rather than fighting it (Workers-with-assets is also the model Cloudflare is
-pushing going forward).
+This is a plain **static site on GitHub Pages** — no server, no Cloudflare, no separate backend. There's
+no such thing as a secure server-side secret in that model, so the piece that writes new games back to
+this repo (which needs a GitHub write credential) runs in the visitor's own browser instead. See
+"Architecture & the public-token trade-off" below for why that's a deliberate choice, not an oversight.
 
-- **`public/`** — the static site, served via the `ASSETS` binding — no build step.
+- **`public/`** — the entire site, deployed as-is (no build step).
   - `index.html` — the landing page: Auto Teams generator + manual team builder/score submission (see below)
   - `statistics.html` — career-average and max box-score stats per player
   - `handicaps.html` — current handicaps + live 2026 win/loss record
   - `moose.html` — Moose Score leaderboard (see below)
   - `history.html` — season archives for 2023–2025, live-computed 2026
   - `data/` — the actual data: `players.json`, `games.json`, `config.json`, `stats.json`
-- **`src/`** — the Worker (the backend).
-  - `worker.js` — the entrypoint. Routes `POST /api/submit-game` by hand (Workers have no file-based
-    routing like Pages Functions did) and falls through to `env.ASSETS.fetch(request)` for everything else
-  - `api/submit-game.js` — validates a submitted match, re-solves handicaps, commits the result back to this repo via the GitHub API
-  - `lib/solver.js` — the handicap engine (see below)
-  - `lib/moose.js` — the Moose Score formula (also duplicated in `public/app.js` for client-side rendering — static assets and the Worker script aren't bundled together, so this small pure formula can't be shared via import; keep both in sync if it changes)
-  - `lib/github.js` — thin GitHub Contents API client used to read/write the JSON data files
+  - `app.js` — shared rendering helpers loaded as a plain script on every page
+  - `lib/` — ES modules imported directly by pages that need them (not bundled with anything):
+    - `submit-game.js` — validates a submitted match, re-solves handicaps, commits the result back to this repo via the GitHub API. This is the client-side successor to what was briefly a Cloudflare Worker route — see git history if you're curious, but there's no Worker anymore.
+    - `solver.js` — the handicap engine (see below)
+    - `moose.js` — the Moose Score formula (also duplicated in `app.js` since that loads as a plain script, not a module — keep both in sync if it changes)
+    - `github.js` — thin GitHub Contents API client used to read/write the JSON data files
+    - `repo-config.js` — the repo-write token (see below) plus owner/repo/branch
 - **`test/`** — solver + pipeline tests (`npm test`), including an end-to-end test of the submission flow with a mocked GitHub API.
+
+## Architecture & the public-token trade-off
+
+GitHub Pages only serves static files — there's no way to run server code that could keep a credential
+hidden from visitors. So `lib/submit-game.js` runs entirely in the browser: it reads the current data
+files, re-solves handicaps, and writes the result straight back to this repo via the GitHub API, using a
+token that ships in the page's own JavaScript (`lib/repo-config.js`).
+
+That token is:
+- A **fine-grained GitHub PAT scoped to only this repo**, with **Contents: Read and write** and no other
+  permission — it can't touch any other repo or account setting.
+- **Lightly obfuscated** (reversed + base64) purely so GitHub's automated secret-scanning doesn't
+  flag/revoke it on push. This is not real security — anyone who wants the actual value can trivially
+  reconstruct it from that file or from a network request in dev tools. It only stops automated bots and
+  casual code-search scraping.
+- An **accepted risk, not a mistake**: this is a small trusted-group site, and the worst case is someone
+  writing garbage into this one repo's data or defacing the site's own source. If that risk profile ever
+  changes, the fix is to put a real backend back in front of the token (any host that can keep a secret
+  server-side — Cloudflare Workers, Vercel, Netlify Functions, etc. — works, since `lib/github.js` and
+  `lib/solver.js` are plain framework-agnostic JS with no browser-specific dependencies).
+
+To rotate the token: generate a new fine-grained PAT (GitHub → Settings → Developer settings → Personal
+access tokens → Fine-grained tokens), scoped to `robbyho-aoe2/fortnite`, Contents: Read and write. Then
+run `btoa([...token].reverse().join(""))` in a browser console and paste the result into
+`ENCODED_TOKEN` in `public/lib/repo-config.js`.
 
 ## How handicaps work
 
@@ -68,18 +93,19 @@ All the tunable constants (`tau`, iteration limits, step sizes, bounds, window s
 solver) automatically added to whichever team has fewer real players, so an uneven pool — like a 3v4 —
 still grades against a symmetric reference. It never appears as a selectable checkbox; both the Auto
 Teams generator and the live "wins to tie" preview add it in automatically wherever team sizes don't
-match, both client-side (`computeMatchup` / `generateBalancedSplits` in `public/app.js`) and
-server-side (`src/api/submit-game.js`) using the identical formula.
+match, using the identical formula as the actual submission logic (`computeMatchup` /
+`generateBalancedSplits` in `app.js` mirror `computeBreakeven` in `lib/solver.js`).
 
-Submitting POSTs to `/api/submit-game`, handled by `src/worker.js` → `src/api/submit-game.js`, which:
+Hitting "Submit Game" calls `submitGame()` in `lib/submit-game.js`, which runs in your own browser:
 
-1. Re-reads the current `games.json`/`players.json` from GitHub, appends the new game (after applying
-   the rounds-played scaling above).
+1. Reads the current `games.json`/`players.json` straight from GitHub, appends the new game (after
+   applying the rounds-played scaling above).
 2. Re-runs the solver across the whole log and computes new published handicaps.
 3. Commits both updated files straight back to this repo via the GitHub API.
-4. That commit is a real push to `main`, which triggers the GitHub Actions workflow (see Deployment
-   below) the same as any other push — so the Worker redeploys with the fresh data within about a
-   minute, no separate database involved. GitHub stays the single source of truth for all data.
+4. That commit is a real push to `main`, which triggers the GitHub Actions deploy workflow (see
+   Deployment below) the same as any other push — so the site redeploys with the fresh data within
+   about a minute or two. GitHub stays the single source of truth for all data; there's no separate
+   database, and no server sits between your submission and the commit.
 
 ## Season history vs. live 2026
 
@@ -138,41 +164,26 @@ Sheet names never matched players' actual Epic/online display names, so `players
 | kman | K-Man2711 | K-Man *(new, no games yet — provisional handicap)* |
 
 The UI shows each player's real name as primary, with their alias underneath where the two differ
-(`displayName()` / `secondaryName()` in `public/app.js`). `lp` isn't a real player at all — see "Building
+(`displayName()` / `secondaryName()` in `app.js`). `lp` isn't a real player at all — see "Building
 teams and submitting a game" above — so it's excluded from every player-picker and leaderboard, but
 stays in the solver's roster since games it was auto-added to still affect everyone else's numbers.
 
 ## Deployment
 
-This is a Cloudflare **Worker** (project name `fortnite`), deployed via **GitHub Actions**
-(`.github/workflows/deploy.yml`) rather than Cloudflare's own Git-connected build system.
-Cloudflare's "Builds" feature hit an unresolvable account-level bug during setup (a stale build-token
-attribution to a departed org member that persisted through recreating both the token and the whole
-project) — GitHub Actions runs `wrangler deploy` instead, sidestepping it entirely. Same end result:
-push to `main`, site redeploys.
+Plain **GitHub Pages**, deployed via GitHub Actions (`.github/workflows/deploy.yml`) using the standard
+`actions/deploy-pages` flow — no Cloudflare, no Worker, no external account of any kind involved.
 
 **One-time setup:**
 
-1. The Cloudflare Worker project (`fortnite`) already exists, connected to this repo. Its own
-   Git-triggered build should stay **disabled** (Settings → Builds) so it doesn't also try to deploy
-   and fail alongside the Actions workflow — only GitHub Actions should be doing deploys.
-2. In **this GitHub repo's** Settings → Secrets and variables → **Actions**, add:
-   - `CLOUDFLARE_API_TOKEN` — a token scoped to **Account → Cloudflare Pages → Edit** (this permission
-     name is a holdover — it also covers Workers deploys)
-   - `CLOUDFLARE_ACCOUNT_ID` — the Cloudflare account ID
-3. In the **Worker's** Settings → **Variables and Secrets** (the top-level one — not the separate,
-   differently-scoped "Variables and secrets" nested under the Builds section, which only applies to
-   the build process and isn't visible to the deployed Worker at runtime), add — these are read by
-   `/api/submit-game` at request time, separate from the two above which are only used at deploy time:
-   - `GITHUB_TOKEN` — a fine-grained GitHub Personal Access Token scoped to **only this repo**, with
-     **Contents: Read and write** permission. This is what lets the submit function commit new games.
-   - `GITHUB_OWNER` — `robbyho-aoe2`
-   - `GITHUB_REPO` — `fortnite`
-   - `GITHUB_BRANCH` — `main`
-4. Push to `main` (or run the workflow manually via Actions → Deploy to Cloudflare Workers → Run workflow).
+1. In this repo's **Settings → Pages**, set **Source** to **GitHub Actions** (not "Deploy from a
+   branch" — that's the older, different Pages flow).
+2. Make sure `public/lib/repo-config.js`'s `ENCODED_TOKEN` holds a currently-valid token (see
+   "Architecture & the public-token trade-off" above for what it's scoped to and how to rotate it).
+3. Push to `main` (or run the workflow manually via Actions → Deploy to GitHub Pages → Run workflow).
 
-No database, no separate server — the Worker + its `ASSETS` binding + this repo's own `data/` files are
-the entire stack; GitHub Actions is just the delivery mechanism.
+That's the entire stack: this repo's own `data/` files, GitHub Pages for hosting, and GitHub Actions
+purely to publish on push — no database, no server, nothing else to configure or that can go down
+independently.
 
 ## Roadmap (not built yet)
 

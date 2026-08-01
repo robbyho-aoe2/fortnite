@@ -90,7 +90,9 @@
 </div>
 
 <script src="app.js"></script>
-<script>
+<script type="module">
+import { submitGame } from "./lib/submit-game.js";
+
 (async function () {
   const { players, config } = await loadData();
   const byKey = playerByKey(players);
@@ -258,16 +260,10 @@
     submitBtn.disabled = true;
     submitBtn.textContent = "Submitting…";
     try {
-      const res = await fetch("/api/submit-game", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const body = await res.json();
-      if (!res.ok) throw new Error(body.error || "Submission failed");
+      const result = await submitGame(payload);
 
       messageEl.appendChild(el("div", { class: "msg success" },
-        `Saved! Result: ${body.game.winningTeam === 0 ? "Tie" : "Team " + body.game.winningTeam + " won"}. Handicaps have been recomputed.`
+        `Saved! Result: ${result.game.winningTeam === 0 ? "Tie" : "Team " + result.game.winningTeam + " won"}. Handicaps have been recomputed.`
       ));
       form.reset();
       document.getElementById("date").valueAsDate = new Date();

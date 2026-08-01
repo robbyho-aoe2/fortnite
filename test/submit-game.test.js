@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import assert from "assert";
 import { fileURLToPath } from "url";
-import { validate } from "../src/api/submit-game.js";
+import { validate } from "../public/lib/submit-game.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dataDir = path.join(__dirname, "..", "public", "data");
@@ -27,8 +27,8 @@ assert.ok(validate({ date: "2026-08-01", team1: ["robby"], team1Score: 5, team2:
 console.log("All validate() checks passed.");
 
 // End-to-end pipeline test with an in-memory mock of the GitHub file layer,
-// so we can exercise the full submit -> resolve -> respond flow without
-// needing real GitHub credentials.
+// so we can exercise the full submit -> resolve -> commit flow (the same
+// path the browser takes) without needing real GitHub credentials.
 console.log("\n--- end-to-end submit pipeline (mocked GitHub) ---");
 
 const config = JSON.parse(fs.readFileSync(path.join(dataDir, "config.json"), "utf-8"));
@@ -40,7 +40,7 @@ const mockFiles = {
   "public/data/games.json": JSON.stringify(games),
 };
 
-// Minimal fetch mock intercepting the GitHub Contents API calls made by src/lib/github.js
+// Minimal fetch mock intercepting the GitHub Contents API calls made by public/lib/github.js
 const originalFetch = global.fetch;
 global.fetch = async (url, options = {}) => {
   const match = String(url).match(/contents\/([^?]+)/);
@@ -60,25 +60,19 @@ global.fetch = async (url, options = {}) => {
   throw new Error("unexpected fetch in mock: " + url);
 };
 
-const { handleSubmitGame } = await import("../src/api/submit-game.js");
+const { submitGame } = await import("../public/lib/submit-game.js");
 
-const env = { GITHUB_TOKEN: "fake", GITHUB_OWNER: "robbyho-aoe2", GITHUB_REPO: "fortnite", GITHUB_BRANCH: "main" };
+const testRepoConfig = { GITHUB_TOKEN: "fake", GITHUB_OWNER: "robbyho-aoe2", GITHUB_REPO: "fortnite", GITHUB_BRANCH: "main" };
 const requestBody = { date: "2026-08-01", team1: ["robby", "kyle"], team1Score: 13, team2: ["doug", "sean"] };
-const request = new Request("http://localhost/api/submit-game", {
-  method: "POST",
-  body: JSON.stringify(requestBody),
-});
 
-const response = await handleSubmitGame(request, env);
-const responseBody = await response.json();
+const result = await submitGame(requestBody, testRepoConfig);
 
-assert.strictEqual(response.status, 200, "submission should succeed");
-assert.ok(responseBody.game, "response should include the new game");
-assert.ok(responseBody.players.length === players.length, "response should include full updated roster");
+assert.ok(result.game, "result should include the new game");
+assert.ok(result.players.length === players.length, "result should include full updated roster");
 
 const persistedGames = JSON.parse(mockFiles["public/data/games.json"]);
 assert.strictEqual(persistedGames.length, games.length + 1, "new game should be persisted");
-assert.ok(persistedGames.some((g) => g.id === responseBody.game.id), "persisted log should contain the new game");
+assert.ok(persistedGames.some((g) => g.id === result.game.id), "persisted log should contain the new game");
 
 const persistedPlayers = JSON.parse(mockFiles["public/data/players.json"]);
 const robbyBefore = players.find((p) => p.key === "robby").publishedHC;
@@ -90,17 +84,11 @@ console.log("\n--- rounds-played scaling ---");
 
 // A game that ended 5-5 at round 10 of 20 should grade identically to 10-10.
 const shortGameBody = { date: "2026-08-02", team1: ["robby", "kyle"], team1Score: 5, roundsPlayed: 10, team2: ["doug", "sean"] };
-const shortGameRequest = new Request("http://localhost/api/submit-game", {
-  method: "POST",
-  body: JSON.stringify(shortGameBody),
-});
-const shortGameResponse = await handleSubmitGame(shortGameRequest, env);
-const shortGameResponseBody = await shortGameResponse.json();
+const shortGameResult = await submitGame(shortGameBody, testRepoConfig);
 
-assert.strictEqual(shortGameResponse.status, 200, "short-game submission should succeed");
-assert.strictEqual(shortGameResponseBody.game.team1Score, 10, "5 wins at round 10 of 20 should scale to 10");
-assert.strictEqual(shortGameResponseBody.game.rawTeam1Score, 5, "raw reported score should be preserved");
-assert.strictEqual(shortGameResponseBody.game.roundsPlayed, 10, "roundsPlayed should be preserved");
+assert.strictEqual(shortGameResult.game.team1Score, 10, "5 wins at round 10 of 20 should scale to 10");
+assert.strictEqual(shortGameResult.game.rawTeam1Score, 5, "raw reported score should be preserved");
+assert.strictEqual(shortGameResult.game.roundsPlayed, 10, "roundsPlayed should be preserved");
 
 assert.deepStrictEqual(
   validate({ date: "2026-08-01", team1: ["robby"], team1Score: 5, team2: ["doug"], roundsPlayed: 25 }, knownKeys, 20).length > 0,
@@ -110,25 +98,19 @@ assert.deepStrictEqual(
 
 console.log("Rounds-played scaling checks passed.");
 
-console.log("\n--- crashes return a JSON error, not an uncaught exception ---");
+console.log("\n--- GitHub API failures throw a real error ---");
 
 // Simulate a broken GITHUB_TOKEN (or any GitHub API failure): getFile()
-// throws. The handler must catch it and return JSON, not let it propagate
-// (which is what produced the "Unexpected token '<'" client-side error —
-// Cloudflare's default HTML crash page instead of a real response).
-const brokenEnv = { ...env, GITHUB_TOKEN: "invalid" };
+// should throw a descriptive error the caller can display, not fail silently
+// or produce something unparseable.
 global.fetch = async () => ({ ok: false, status: 401, text: async () => "Bad credentials" });
 
-const crashRequest = new Request("http://localhost/api/submit-game", {
-  method: "POST",
-  body: JSON.stringify({ date: "2026-08-03", team1: ["robby"], team1Score: 5, team2: ["doug"] }),
-});
-const crashResponse = await handleSubmitGame(crashRequest, brokenEnv);
-const crashResponseBody = await crashResponse.json();
-
-assert.strictEqual(crashResponse.status, 500, "a thrown error should surface as a 500, not crash the Worker");
-assert.ok(crashResponseBody.error, "the error response should include a message");
-console.log("Crash-handling check passed:", crashResponseBody.error);
+await assert.rejects(
+  () => submitGame({ date: "2026-08-03", team1: ["robby"], team1Score: 5, team2: ["doug"] }, { ...testRepoConfig, GITHUB_TOKEN: "invalid" }),
+  /GitHub getFile.*401/,
+  "a bad token should surface as a clear thrown error"
+);
+console.log("GitHub-failure error handling check passed.");
 
 global.fetch = originalFetch;
 console.log("\nEnd-to-end pipeline test passed.");

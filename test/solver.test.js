@@ -2,8 +2,8 @@ import fs from "fs";
 import path from "path";
 import assert from "assert";
 import { fileURLToPath } from "url";
-import { recomputeAllHandicaps, computeBreakeven } from "../src/lib/solver.js";
-import { computeMooseScore } from "../src/lib/moose.js";
+import { recomputeAllHandicaps, computeBreakeven } from "../public/lib/solver.js";
+import { computeMooseScore } from "../public/lib/moose.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dataDir = path.join(__dirname, "..", "public", "data");

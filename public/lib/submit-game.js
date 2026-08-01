@@ -1,27 +1,18 @@
-// POST /api/submit-game
-// Body: { date: "YYYY-MM-DD", team1: ["robby","kyle"], team1Score: 12, team2: ["doug","sean"], roundsPlayed?: 20 }
-//
-// Validates the submission, scales the reported score up to the 20-round
-// reference scale if the session ended early, appends it to the game log,
-// re-solves handicaps across the full history, and commits both files back
-// to GitHub. The resulting commit triggers a redeploy via the GitHub
-// Actions workflow.
+// Client-side port of the submission pipeline (formerly a Cloudflare Worker
+// route). Runs entirely in the browser: validates, scales the reported score
+// up to the 20-round reference if the session ended early, re-solves
+// handicaps across the full history, and commits both updated files straight
+// back to GitHub. That commit triggers a normal GitHub Pages redeploy.
 
-import { getFile, putFile } from "../lib/github.js";
-import { recomputeAllHandicaps, computeBreakeven, teamHCTotal } from "../lib/solver.js";
+import { getFile, putFile } from "./github.js";
+import { recomputeAllHandicaps, computeBreakeven, teamHCTotal } from "./solver.js";
+import { repoConfig } from "./repo-config.js";
 
 const GAMES_PATH = "public/data/games.json";
 const PLAYERS_PATH = "public/data/players.json";
 const CONFIG_PATH = "public/data/config.json";
 
 const ROSTER_ORDER = ["robby", "matt", "mn", "doug", "kyle", "jim", "bello", "chris", "collin", "sean", "vinny", "j2", "lp"];
-
-function jsonResponse(body, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-}
 
 function validate(payload, knownKeys, raceTotal = 20) {
   const errors = [];
@@ -67,49 +58,32 @@ function validate(payload, knownKeys, raceTotal = 20) {
   return errors;
 }
 
-async function handleSubmitGame(request, env) {
-  let payload;
-  try {
-    payload = await request.json();
-  } catch {
-    return jsonResponse({ error: "Body must be valid JSON" }, 400);
-  }
-
-  try {
-    return await processSubmission(payload, env);
-  } catch (err) {
-    // Surface a real JSON error instead of letting Cloudflare's generic HTML
-    // crash page reach the client (which shows up client-side as a cryptic
-    // "Unexpected token '<'" JSON-parse failure).
-    return jsonResponse({ error: `Server error: ${err.message}` }, 500);
-  }
-}
-
-async function processSubmission(payload, env) {
+// Throws on validation or GitHub API failure; returns { game, breakeven, players } on success.
+async function submitGame(payload, config = repoConfig) {
   const [configFile, playersFile, gamesFile] = await Promise.all([
-    getFile(env, CONFIG_PATH),
-    getFile(env, PLAYERS_PATH),
-    getFile(env, GAMES_PATH),
+    getFile(config, CONFIG_PATH),
+    getFile(config, PLAYERS_PATH),
+    getFile(config, GAMES_PATH),
   ]);
 
-  const config = JSON.parse(configFile.content);
+  const raceConfig = JSON.parse(configFile.content);
   const players = JSON.parse(playersFile.content);
   const games = JSON.parse(gamesFile.content);
   const knownKeys = players.map((p) => p.key);
 
-  const errors = validate(payload, knownKeys, config.raceScale.total);
-  if (errors.length > 0) return jsonResponse({ error: errors.join("; ") }, 400);
+  const errors = validate(payload, knownKeys, raceConfig.raceScale.total);
+  if (errors.length > 0) throw new Error(errors.join("; "));
 
   // If the session ended before the full 20-round reference, scale the
   // reported score up proportionally (e.g. 5-5 at round 10 of 20 grades the
   // same as 10-10) so every game compares against the same fixed scale.
-  const roundsPlayed = payload.roundsPlayed || config.raceScale.total;
-  const scaledTeam1Score = payload.team1Score * (config.raceScale.total / roundsPlayed);
+  const roundsPlayed = payload.roundsPlayed || raceConfig.raceScale.total;
+  const scaledTeam1Score = payload.team1Score * (raceConfig.raceScale.total / roundsPlayed);
 
   const hcByKey = Object.fromEntries(players.map((p) => [p.key, p.publishedHC || 0]));
   const t1Total = teamHCTotal(payload.team1, hcByKey);
   const t2Total = teamHCTotal(payload.team2, hcByKey);
-  const { team1Threshold, team2Threshold } = computeBreakeven(t1Total, t2Total, config.raceScale);
+  const { team1Threshold, team2Threshold } = computeBreakeven(t1Total, t2Total, raceConfig.raceScale);
   const winningTeam = scaledTeam1Score > team1Threshold ? 1 : scaledTeam1Score < team1Threshold ? 2 : 0;
 
   const newGame = {
@@ -133,9 +107,9 @@ async function processSubmission(payload, env) {
     currentBaseHC,
     updatedGames,
     rosterOrder,
-    config.raceScale,
-    config.solver,
-    config.strengthFactor
+    raceConfig.raceScale,
+    raceConfig.solver,
+    raceConfig.strengthFactor
   );
 
   const updatedPlayers = players.map((p) => {
@@ -149,25 +123,25 @@ async function processSubmission(payload, env) {
   });
 
   await putFile(
-    env,
+    config,
     GAMES_PATH,
     JSON.stringify(updatedGames, null, 2),
     gamesFile.sha,
     `Add game ${newGame.id} (${payload.date})`
   );
   await putFile(
-    env,
+    config,
     PLAYERS_PATH,
     JSON.stringify(updatedPlayers, null, 2),
     playersFile.sha,
     `Recompute handicaps after ${newGame.id}`
   );
 
-  return jsonResponse({
+  return {
     game: newGame,
     breakeven: { team1Threshold, team2Threshold },
     players: updatedPlayers,
-  });
+  };
 }
 
-export { handleSubmitGame, validate };
+export { submitGame, validate };

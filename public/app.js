@@ -13,9 +13,9 @@ async function loadStats() {
   return fetch("data/stats.json").then((r) => r.json());
 }
 
-// Kept in sync with src/lib/moose.js — duplicated here because static assets
-// (public/) and the Worker script (src/) are bundled/served separately, so
-// this small pure formula can't be shared via import.
+// Kept in sync with lib/moose.js — duplicated here because app.js loads as a
+// plain (non-module) script on every page, while lib/moose.js is an ES
+// module imported directly by moose.html and lib/submit-game.js.
 function computeMooseScore(stats, mooseCfg) {
   const { normalization: n, weights: w, regression: r } = mooseCfg;
   const raw =
@@ -108,9 +108,9 @@ function fairnessColor(fairness, raceScale) {
 
 // LP isn't a real player — it's a fixed-handicap filler automatically added
 // to whichever team has fewer real players, so uneven sessions (e.g. 3v4)
-// still grade against a symmetric reference. Mirrors src/lib/solver.js's
-// computeBreakeven exactly, so this live preview matches what the backend
-// will actually compute on submit.
+// still grade against a symmetric reference. Mirrors lib/solver.js's
+// computeBreakeven exactly, so this live preview matches what actually gets
+// submitted.
 function computeMatchup(team1Keys, team2Keys, byKey, raceScale) {
   const team1 = [...team1Keys];
   const team2 = [...team2Keys];
@@ -125,9 +125,9 @@ function computeMatchup(team1Keys, team2Keys, byKey, raceScale) {
   return { team1Effective: team1, team2Effective: team2, lpTeam, team1Threshold, team2Threshold };
 }
 
-// Kept in sync with computeBreakeven in src/lib/solver.js (see the comment
-// there for why the tie-break exists) — duplicated for the same reason as
-// the Moose formula above: public/ and src/ aren't bundled together.
+// Kept in sync with computeBreakeven in lib/solver.js (see the comment there
+// for why the tie-break exists) — duplicated for the same reason as the
+// Moose formula above: app.js is a plain script, not a module.
 function roundedBreakeven(team1HCTotal, team2HCTotal, raceScale) {
   const diff = team1HCTotal - team2HCTotal;
   const rawTeam1Threshold = diff + raceScale.half;
