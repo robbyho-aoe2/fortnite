@@ -133,6 +133,7 @@ async function resolveAndCommit(updatedGames, players, raceConfig, config, games
     currentBaseHC,
     updatedGames,
     rosterOrder,
+    raceConfig.raceScale,
     raceConfig.solver,
     raceConfig.strengthFactor
   );
