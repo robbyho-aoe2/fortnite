@@ -1,16 +1,24 @@
 // Shared data loading + rendering helpers used across all pages.
 
+// GitHub Pages caches data files for several minutes (Cache-Control: max-age=600).
+// A cache-busting query param forces every page load to fetch the latest
+// commit's data instead of waiting out that window, since a game submission
+// should show up right away, not "eventually."
+function cacheBust(url) {
+  return `${url}${url.includes("?") ? "&" : "?"}_=${Date.now()}`;
+}
+
 async function loadData() {
   const [players, games, config] = await Promise.all([
-    fetch("data/players.json").then((r) => r.json()),
-    fetch("data/games.json").then((r) => r.json()),
-    fetch("data/config.json").then((r) => r.json()),
+    fetch(cacheBust("data/players.json")).then((r) => r.json()),
+    fetch(cacheBust("data/games.json")).then((r) => r.json()),
+    fetch(cacheBust("data/config.json")).then((r) => r.json()),
   ]);
   return { players, games, config };
 }
 
 async function loadStats() {
-  return fetch("data/stats.json").then((r) => r.json());
+  return fetch(cacheBust("data/stats.json")).then((r) => r.json());
 }
 
 // Kept in sync with lib/moose.js — duplicated here because app.js loads as a

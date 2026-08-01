@@ -3,6 +3,12 @@
 //   1. Base HC: a coordinate hill-climb over the full game log that finds handicaps
 //      making every player's recency-weighted, handicap-adjusted win rate ~50%.
 //   2. Strength factor: a current-record momentum nudge added on top of the base.
+//
+// LP (a fixed-handicap filler for uneven team counts, not a real player) still
+// gets its own coordinate-descent step and bounds like everyone else, but is
+// excluded from the Hi-Lo spread objective the solver is minimizing — its win
+// rate is noise, not skill signal, so including it made the solver chase a
+// spread that wasn't real, causing far more per-game churn than intended.
 
 // "Wins needed to tie" is a real target line announced before playing, so it
 // has to be a whole number. Round to the nearest integer; on an exact half
@@ -118,6 +124,14 @@ function singlePassSolve(initialHC, games, rosterOrder, raceScale, cfg) {
     }
   }
 
+  // The Hi-Lo spread judges whether the *real* population looks fair. LP is
+  // a fixed-handicap filler, not a real player, so its win rate is noise —
+  // including it would make the objective chase a spread that isn't
+  // actually about anyone's skill, causing more churn than the data justifies.
+  // (LP still gets its own coordinate-descent step below via `rosterOrder`,
+  // this only excludes it from the objective being minimized.)
+  const objectiveRoster = pinnableKeys;
+
   let step = cfg.startStep;
   let bestObjective = Infinity;
   let bestHC = { ...hc };
@@ -126,7 +140,7 @@ function singlePassSolve(initialHC, games, rosterOrder, raceScale, cfg) {
   let cellIndex = 0;
 
   for (let iter = 0; iter < cfg.maxIterations; iter++) {
-    const objective = hiLoSpread(rosterOrder, playerIndex, hc, raceScale, cfg.tau, cfg.minGamesForObjective);
+    const objective = hiLoSpread(objectiveRoster, playerIndex, hc, raceScale, cfg.tau, cfg.minGamesForObjective);
 
     if (objective < bestObjective - cfg.improvementEpsilon) {
       bestObjective = objective;

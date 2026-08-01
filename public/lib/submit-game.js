@@ -14,6 +14,24 @@ const CONFIG_PATH = "public/data/config.json";
 
 const ROSTER_ORDER = ["robby", "matt", "mn", "doug", "kyle", "jim", "bello", "chris", "collin", "sean", "vinny", "j2", "lp"];
 
+// A submitted game can be corrected for a limited window afterward (typos,
+// wrong score, forgot a player) without leaving a stray duplicate in the
+// log. After that it's locked, matching the group's expectation that the
+// history stabilizes. The submission timestamp is the id itself
+// (`game-<ms>`) rather than a separate field, since that's already exactly
+// "when this was recorded."
+const EDIT_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+function getSubmittedAt(gameId) {
+  const match = /^game-(\d+)$/.exec(gameId || "");
+  return match ? Number(match[1]) : null;
+}
+
+function isEditable(gameId) {
+  const submittedAt = getSubmittedAt(gameId);
+  return submittedAt != null && Date.now() - submittedAt < EDIT_WINDOW_MS;
+}
+
 function validate(payload, knownKeys, raceTotal = 20) {
   const errors = [];
   if (!payload || typeof payload !== "object") return ["Missing request body"];
@@ -58,19 +76,11 @@ function validate(payload, knownKeys, raceTotal = 20) {
   return errors;
 }
 
-// Throws on validation or GitHub API failure; returns { game, breakeven, players } on success.
-async function submitGame(payload, config = repoConfig) {
-  const [configFile, playersFile, gamesFile] = await Promise.all([
-    getFile(config, CONFIG_PATH),
-    getFile(config, PLAYERS_PATH),
-    getFile(config, GAMES_PATH),
-  ]);
-
-  const raceConfig = JSON.parse(configFile.content);
-  const players = JSON.parse(playersFile.content);
-  const games = JSON.parse(gamesFile.content);
+// Validates a payload and turns it into a game record (scaled score, graded
+// winner) — the part that's identical whether this is a brand new game or an
+// edit of an existing one.
+function buildGameRecord(payload, players, raceConfig, id) {
   const knownKeys = players.map((p) => p.key);
-
   const errors = validate(payload, knownKeys, raceConfig.raceScale.total);
   if (errors.length > 0) throw new Error(errors.join("; "));
 
@@ -86,19 +96,26 @@ async function submitGame(payload, config = repoConfig) {
   const { team1Threshold, team2Threshold } = computeBreakeven(t1Total, t2Total, raceConfig.raceScale);
   const winningTeam = scaledTeam1Score > team1Threshold ? 1 : scaledTeam1Score < team1Threshold ? 2 : 0;
 
-  const newGame = {
-    id: `game-${Date.now()}`,
-    date: payload.date,
-    team1: payload.team1,
-    team2: payload.team2,
-    team1Score: scaledTeam1Score,
-    rawTeam1Score: payload.team1Score,
-    roundsPlayed,
-    winningTeam,
+  return {
+    game: {
+      id,
+      date: payload.date,
+      team1: payload.team1,
+      team2: payload.team2,
+      team1Score: scaledTeam1Score,
+      rawTeam1Score: payload.team1Score,
+      roundsPlayed,
+      winningTeam,
+    },
+    breakeven: { team1Threshold, team2Threshold },
   };
+}
 
-  const updatedGames = [...games, newGame].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
-
+// Re-solves handicaps across the given game log and commits both files back
+// to GitHub. Shared by submitGame and editGame — the only difference between
+// them is how `updatedGames` got built.
+async function resolveAndCommit(updatedGames, players, raceConfig, config, gamesFile, playersFile, commitId) {
+  const knownKeys = players.map((p) => p.key);
   const rosterOrder = ROSTER_ORDER.filter((k) => knownKeys.includes(k));
   const currentBaseHC = {};
   for (const p of players) currentBaseHC[p.key] = p.baseHC || 0;
@@ -113,7 +130,11 @@ async function submitGame(payload, config = repoConfig) {
   );
 
   const updatedPlayers = players.map((p) => {
-    if (!(p.key in baseHC)) return p;
+    // `baseHC` retains every player's key (the solver only mutates rosterOrder
+    // entries, it doesn't drop the rest) — check rosterOrder itself, not
+    // `in baseHC`, or players outside the active roster (e.g. brand new,
+    // not yet eligible) get strFac/publishedHC looked up as undefined.
+    if (!rosterOrder.includes(p.key)) return p;
     return {
       ...p,
       baseHC: baseHC[p.key],
@@ -122,26 +143,58 @@ async function submitGame(payload, config = repoConfig) {
     };
   });
 
-  await putFile(
-    config,
-    GAMES_PATH,
-    JSON.stringify(updatedGames, null, 2),
-    gamesFile.sha,
-    `Add game ${newGame.id} (${payload.date})`
-  );
-  await putFile(
-    config,
-    PLAYERS_PATH,
-    JSON.stringify(updatedPlayers, null, 2),
-    playersFile.sha,
-    `Recompute handicaps after ${newGame.id}`
-  );
+  await putFile(config, GAMES_PATH, JSON.stringify(updatedGames, null, 2), gamesFile.sha, `Update game ${commitId}`);
+  await putFile(config, PLAYERS_PATH, JSON.stringify(updatedPlayers, null, 2), playersFile.sha, `Recompute handicaps after ${commitId}`);
 
+  return updatedPlayers;
+}
+
+async function loadCurrentState(config) {
+  const [configFile, playersFile, gamesFile] = await Promise.all([
+    getFile(config, CONFIG_PATH),
+    getFile(config, PLAYERS_PATH),
+    getFile(config, GAMES_PATH),
+  ]);
   return {
-    game: newGame,
-    breakeven: { team1Threshold, team2Threshold },
-    players: updatedPlayers,
+    raceConfig: JSON.parse(configFile.content),
+    players: JSON.parse(playersFile.content),
+    games: JSON.parse(gamesFile.content),
+    playersFile,
+    gamesFile,
   };
 }
 
-export { submitGame, validate };
+// Throws on validation or GitHub API failure; returns { game, breakeven, players } on success.
+async function submitGame(payload, config = repoConfig) {
+  const { raceConfig, players, games, playersFile, gamesFile } = await loadCurrentState(config);
+
+  const { game, breakeven } = buildGameRecord(payload, players, raceConfig, `game-${Date.now()}`);
+  const updatedGames = [...games, game].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+
+  const updatedPlayers = await resolveAndCommit(updatedGames, players, raceConfig, config, gamesFile, playersFile, game.id);
+
+  return { game, breakeven, players: updatedPlayers };
+}
+
+// Same pipeline, but replaces an existing game in place instead of
+// appending. Only allowed within EDIT_WINDOW_MS of the original submission.
+async function editGame(gameId, payload, config = repoConfig) {
+  if (!isEditable(gameId)) {
+    throw new Error("This game is no longer editable (the 24-hour edit window has passed).");
+  }
+
+  const { raceConfig, players, games, playersFile, gamesFile } = await loadCurrentState(config);
+  const index = games.findIndex((g) => g.id === gameId);
+  if (index === -1) throw new Error(`Game ${gameId} not found — it may have already been edited by someone else.`);
+
+  const { game, breakeven } = buildGameRecord(payload, players, raceConfig, gameId);
+  const updatedGames = [...games];
+  updatedGames[index] = game;
+  updatedGames.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+
+  const updatedPlayers = await resolveAndCommit(updatedGames, players, raceConfig, config, gamesFile, playersFile, game.id);
+
+  return { game, breakeven, players: updatedPlayers };
+}
+
+export { submitGame, editGame, validate, isEditable, getSubmittedAt, EDIT_WINDOW_MS };

@@ -54,6 +54,31 @@ for (const p of players) {
 console.log(`max drift from sheet snapshot: ${maxDrift.toFixed(2)} (expected: nonzero, we only have 545 games of history vs the full multi-year log the sheet solved against)`);
 assert.ok(maxDrift < 4, "recomputed handicaps should be in the same ballpark as the sheet snapshot");
 
+console.log("\n--- Regression: one new game should nudge handicaps by a few decimals, not swing them ---");
+// LP must be excluded from the Hi-Lo objective (it's a filler, not a real
+// player — its win rate is noise). Including it made the solver chase a
+// spread that wasn't really about anyone's skill, causing far bigger
+// per-game swings than intended, including for players not even in the new
+// game. This reproduces that exact scenario against the local seed data.
+const oneMoreGame = {
+  id: "game-test-regression",
+  date: "2026-08-02",
+  team1: ["robby", "doug", "jim"],
+  team2: ["mn", "kyle", "j2"],
+  team1Score: 4,
+  winningTeam: 2,
+};
+const before = recomputeAllHandicaps(currentBaseHC, games, rosterOrder, config.raceScale, config.solver, config.strengthFactor);
+const after = recomputeAllHandicaps(before.baseHC, [...games, oneMoreGame], rosterOrder, config.raceScale, config.solver, config.strengthFactor);
+
+let maxSwing = 0;
+for (const key of rosterOrder) {
+  const swing = Math.abs(after.publishedHC[key] - before.publishedHC[key]);
+  maxSwing = Math.max(maxSwing, swing);
+}
+console.log(`max single-game swing: ${maxSwing.toFixed(3)}`);
+assert.ok(maxSwing < 0.5, "one additional game shouldn't swing any player's handicap by more than a few tenths");
+
 console.log("\n--- Moose score sanity ---");
 const collinCareer = { avgElims: 5.5, avgDamageDealt: 2400, avgEliminated: 6.2, avgDamageTaken: 1900, avgTimeAliveSeconds: 950 };
 const moose = computeMooseScore(collinCareer, config.moose);

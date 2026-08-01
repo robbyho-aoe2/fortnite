@@ -61,7 +61,12 @@ Ported faithfully from the group's original Google Apps Script (`singlepass()`).
    that their recency-weighted (exponential decay, `tau=50` games), handicap-adjusted win rate converges
    toward 50% — i.e. it finds the handicaps that would have made everyone's history look like a coin flip.
    One player is anchored near 10 as a scale reference; "lp" is hard-pinned to a fixed negative band, both
-   matching the original script's behavior.
+   matching the original script's behavior. The objective being minimized (the spread between the
+   best and worst recency-weighted win rate) **excludes LP** — it's a filler, not a real player, so its
+   win rate is noise; including it made the solver chase a spread that wasn't real, causing every new
+   game to visibly move players who weren't even in it. This runs after *every* submitted game (not in
+   batches), so getting that exclusion right matters — with it, one new game nudges published handicaps
+   by a few hundredths to a few tenths, not whole points.
 2. **Strength factor** — a current-record momentum nudge layered on top, from two recency windows
    (last 25 games and last 200 games) of simple win% deviation from 50%.
 

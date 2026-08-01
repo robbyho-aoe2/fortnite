@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import assert from "assert";
 import { fileURLToPath } from "url";
-import { validate } from "../public/lib/submit-game.js";
+import { validate, isEditable, getSubmittedAt, EDIT_WINDOW_MS } from "../public/lib/submit-game.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dataDir = path.join(__dirname, "..", "public", "data");
@@ -80,6 +80,15 @@ const robbyAfter = persistedPlayers.find((p) => p.key === "robby").publishedHC;
 console.log(`robby publishedHC before: ${robbyBefore}, after: ${robbyAfter}`);
 assert.ok(Number.isFinite(robbyAfter), "recomputed handicap should be a finite number");
 
+// Regression: a player outside the active solver roster (e.g. "kman", brand
+// new with no games) must be left exactly as-is, not corrupted to null/NaN.
+// The solver's returned baseHC map retains every player's key even though it
+// only actually updates roster players, so this is easy to get wrong by
+// checking `key in baseHC` instead of roster membership.
+const kmanBefore = players.find((p) => p.key === "kman");
+const kmanAfter = persistedPlayers.find((p) => p.key === "kman");
+assert.deepStrictEqual(kmanAfter, kmanBefore, "a non-roster player's record should be untouched by a recompute");
+
 console.log("\n--- rounds-played scaling ---");
 
 // A game that ended 5-5 at round 10 of 20 should grade identically to 10-10.
@@ -97,6 +106,41 @@ assert.deepStrictEqual(
 );
 
 console.log("Rounds-played scaling checks passed.");
+
+console.log("\n--- editGame() ---");
+
+assert.strictEqual(isEditable(shortGameResult.game.id), true, "a just-submitted game should be within the edit window");
+assert.strictEqual(isEditable("legacy-19"), false, "a legacy migrated game (no embedded timestamp) should never be editable");
+assert.strictEqual(isEditable(`game-${Date.now() - EDIT_WINDOW_MS - 1000}`), false, "a game older than the edit window should not be editable");
+assert.strictEqual(getSubmittedAt("legacy-19"), null, "legacy ids don't carry a submission timestamp");
+
+const { editGame } = await import("../public/lib/submit-game.js");
+
+// Correct the short game's score entirely (different players, different score).
+const correctedBody = { date: "2026-08-02", team1: ["robby", "sean"], team1Score: 9, team2: ["doug", "kyle"] };
+const editResult = await editGame(shortGameResult.game.id, correctedBody, testRepoConfig);
+
+assert.strictEqual(editResult.game.id, shortGameResult.game.id, "editing should keep the same game id, not create a new one");
+assert.deepStrictEqual(editResult.game.team1, ["robby", "sean"], "edited team1 should be persisted");
+assert.strictEqual(editResult.game.team1Score, 9, "edited score should be persisted");
+
+const gamesAfterEdit = JSON.parse(mockFiles["public/data/games.json"]);
+assert.strictEqual(gamesAfterEdit.length, games.length + 2, "editing should not change the total game count (replace, not append)");
+assert.strictEqual(gamesAfterEdit.filter((g) => g.id === shortGameResult.game.id).length, 1, "there should be exactly one entry for the edited game");
+
+await assert.rejects(
+  () => editGame("game-1", correctedBody, testRepoConfig),
+  /no longer editable/,
+  "editing an old id (embedded timestamp = 1ms after epoch) should be rejected"
+);
+
+await assert.rejects(
+  () => editGame(`game-${Date.now()}`, correctedBody, testRepoConfig),
+  /not found/,
+  "editing an id that doesn't exist in the log should be rejected"
+);
+
+console.log("editGame() checks passed.");
 
 console.log("\n--- GitHub API failures throw a real error ---");
 
