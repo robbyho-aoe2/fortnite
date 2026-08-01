@@ -1,9 +1,11 @@
 // POST /api/submit-game
-// Body: { date: "YYYY-MM-DD", team1: ["robby","kyle"], team1Score: 12, team2: ["doug","sean"] }
+// Body: { date: "YYYY-MM-DD", team1: ["robby","kyle"], team1Score: 12, team2: ["doug","sean"], roundsPlayed?: 20 }
 //
-// Validates the submission, appends it to the game log, re-solves handicaps
-// across the full history, and commits both files back to GitHub. The
-// resulting commit triggers a redeploy via the GitHub Actions workflow.
+// Validates the submission, scales the reported score up to the 20-round
+// reference scale if the session ended early, appends it to the game log,
+// re-solves handicaps across the full history, and commits both files back
+// to GitHub. The resulting commit triggers a redeploy via the GitHub
+// Actions workflow.
 
 import { getFile, putFile } from "../lib/github.js";
 import { recomputeAllHandicaps } from "../lib/solver.js";
@@ -21,7 +23,7 @@ function jsonResponse(body, status = 200) {
   });
 }
 
-function validate(payload, knownKeys) {
+function validate(payload, knownKeys, raceTotal = 20) {
   const errors = [];
   if (!payload || typeof payload !== "object") return ["Missing request body"];
 
@@ -44,6 +46,17 @@ function validate(payload, knownKeys) {
     payload.team1Score < 0
   ) {
     errors.push("team1Score must be a non-negative number");
+  }
+
+  if (payload.roundsPlayed != null) {
+    if (
+      typeof payload.roundsPlayed !== "number" ||
+      !Number.isFinite(payload.roundsPlayed) ||
+      payload.roundsPlayed <= 0 ||
+      payload.roundsPlayed > raceTotal
+    ) {
+      errors.push(`roundsPlayed must be a number between 1 and ${raceTotal}`);
+    }
   }
 
   if (Array.isArray(payload.team1) && Array.isArray(payload.team2)) {
@@ -73,20 +86,28 @@ async function handleSubmitGame(request, env) {
   const games = JSON.parse(gamesFile.content);
   const knownKeys = players.map((p) => p.key);
 
-  const errors = validate(payload, knownKeys);
+  const errors = validate(payload, knownKeys, config.raceScale.total);
   if (errors.length > 0) return jsonResponse({ error: errors.join("; ") }, 400);
+
+  // If the session ended before the full 20-round reference, scale the
+  // reported score up proportionally (e.g. 5-5 at round 10 of 20 grades the
+  // same as 10-10) so every game compares against the same fixed scale.
+  const roundsPlayed = payload.roundsPlayed || config.raceScale.total;
+  const scaledTeam1Score = payload.team1Score * (config.raceScale.total / roundsPlayed);
 
   const t1 = teamHCTotalFrom(payload.team1, players);
   const t2 = teamHCTotalFrom(payload.team2, players);
   const breakeven = t1.total - t2.total + config.raceScale.half;
-  const winningTeam = payload.team1Score > breakeven ? 1 : payload.team1Score < breakeven ? 2 : 0;
+  const winningTeam = scaledTeam1Score > breakeven ? 1 : scaledTeam1Score < breakeven ? 2 : 0;
 
   const newGame = {
     id: `game-${Date.now()}`,
     date: payload.date,
     team1: payload.team1,
     team2: payload.team2,
-    team1Score: payload.team1Score,
+    team1Score: scaledTeam1Score,
+    rawTeam1Score: payload.team1Score,
+    roundsPlayed,
     winningTeam,
   };
 

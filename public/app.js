@@ -1,4 +1,4 @@
-// Shared data loading + rendering helpers used by index.html, history.html, submit.html.
+// Shared data loading + rendering helpers used across all pages.
 
 async function loadData() {
   const [players, games, config] = await Promise.all([
@@ -40,7 +40,13 @@ function playerByKey(players) {
 
 function displayName(player) {
   if (!player) return "Unknown";
-  return player.alias || player.realName || player.key;
+  return player.realName || player.alias || player.key;
+}
+
+function secondaryName(player) {
+  if (!player) return "";
+  const primary = displayName(player);
+  return player.alias && player.alias !== primary ? player.alias : "";
 }
 
 function gamesInYear(games, year) {
@@ -76,6 +82,67 @@ function fmtNum(n, digits = 2) {
 function fmtRecord(r) {
   if (!r || r.games === 0) return "—";
   return `${r.w}-${r.l}-${r.t}`;
+}
+
+// LP isn't a real player — it's a fixed-handicap filler automatically added
+// to whichever team has fewer real players, so uneven sessions (e.g. 3v4)
+// still grade against a symmetric reference. Mirrors src/lib/solver.js's
+// computeBreakeven exactly, so this live preview matches what the backend
+// will actually compute on submit.
+function computeMatchup(team1Keys, team2Keys, byKey, raceScale) {
+  const team1 = [...team1Keys];
+  const team2 = [...team2Keys];
+  let lpTeam = null;
+  if (team1.length !== team2.length) {
+    if (team1.length < team2.length) { team1.push("lp"); lpTeam = 1; }
+    else { team2.push("lp"); lpTeam = 2; }
+  }
+  const hc1 = team1.reduce((sum, k) => sum + (byKey[k]?.publishedHC || 0), 0);
+  const hc2 = team2.reduce((sum, k) => sum + (byKey[k]?.publishedHC || 0), 0);
+  const team1Threshold = hc1 - hc2 + raceScale.half;
+  const team2Threshold = raceScale.total - team1Threshold;
+  return { team1Effective: team1, team2Effective: team2, lpTeam, team1Threshold, team2Threshold };
+}
+
+function combinations(arr, k) {
+  const results = [];
+  function helper(start, combo) {
+    if (combo.length === k) { results.push([...combo]); return; }
+    for (let i = start; i < arr.length; i++) {
+      combo.push(arr[i]);
+      helper(i + 1, combo);
+      combo.pop();
+    }
+  }
+  helper(0, []);
+  return results;
+}
+
+// Every way to split a pool of attending players into two teams of the most
+// even sizes possible, ranked by how close the handicap gap is to dead even
+// (LP fills the smaller side automatically when the pool size is odd).
+function generateBalancedSplits(pool, byKey, raceScale) {
+  if (pool.length < 2) return [];
+  const sizeA = Math.floor(pool.length / 2);
+  const seen = new Set();
+  const splits = [];
+  for (const teamA of combinations(pool, sizeA)) {
+    const teamASet = new Set(teamA);
+    const teamB = pool.filter((k) => !teamASet.has(k));
+    const dedupeKey = [[...teamA].sort().join(","), [...teamB].sort().join(",")].sort().join("|");
+    if (seen.has(dedupeKey)) continue;
+    seen.add(dedupeKey);
+    const matchup = computeMatchup(teamA, teamB, byKey, raceScale);
+    splits.push({
+      teamA, teamB,
+      lpTeam: matchup.lpTeam,
+      team1Threshold: matchup.team1Threshold,
+      team2Threshold: matchup.team2Threshold,
+      fairness: Math.abs(matchup.team1Threshold - raceScale.half),
+    });
+  }
+  splits.sort((a, b) => a.fairness - b.fairness);
+  return splits;
 }
 
 function el(tag, attrs = {}, children = []) {

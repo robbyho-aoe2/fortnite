@@ -11,11 +11,11 @@ code matches that shape rather than fighting it (Workers-with-assets is also the
 pushing going forward).
 
 - **`public/`** — the static site, served via the `ASSETS` binding — no build step.
-  - `index.html` — Statistics: career-average and max box-score stats per player
+  - `index.html` — the landing page: Auto Teams generator + manual team builder/score submission (see below)
+  - `statistics.html` — career-average and max box-score stats per player
   - `handicaps.html` — current handicaps + live 2026 win/loss record
   - `moose.html` — Moose Score leaderboard (see below)
   - `history.html` — season archives for 2023–2025, live-computed 2026
-  - `submit.html` — match submission form
   - `data/` — the actual data: `players.json`, `games.json`, `config.json`, `stats.json`
 - **`src/`** — the Worker (the backend).
   - `worker.js` — the entrypoint. Routes `POST /api/submit-game` by hand (Workers have no file-based
@@ -45,14 +45,39 @@ All the tunable constants (`tau`, iteration limits, step sizes, bounds, window s
 
 **Published handicap = base + strength factor.** This is what's shown on the leaderboard.
 
-## How a submitted game flows through the system
+## Building teams and submitting a game
 
-1. Someone fills out `submit.html`: picks Team 1, Team 2, and how many games Team 1 won in the session.
-2. That POSTs to `/api/submit-game`, handled by `src/worker.js` → `src/api/submit-game.js`.
-3. That function re-reads the current `games.json`/`players.json` from GitHub, appends the new game,
-   re-runs the solver across the whole log, and computes new published handicaps.
-4. It commits both updated files straight back to this repo via the GitHub API.
-5. That commit is a real push to `main`, which triggers the GitHub Actions workflow (see Deployment
+`index.html` (the landing page) has two parts:
+
+1. **Auto Teams** — check off who's playing tonight, hit "Generate Balanced Teams," and it ranks every
+   way to split that pool into the most even two teams (sizes as equal as possible; if the pool is odd,
+   one side is necessarily one player short). Ranked by how close the handicap gap is to a dead-even
+   10-10 split. Click "Use this split" to load it into the builder below.
+2. **Build Teams & Submit Result** — pick Team 1 and Team 2 by hand (or arrive here from Auto Teams
+   already filled in). This shows a live "wins needed to tie" readout as you check players in and out,
+   computed client-side with the exact same formula the backend uses, so what you see here is what
+   actually gets graded. Once the games are played:
+   - Leave **"Game completed"** checked if the session went the full 20-round reference length, and enter
+     Team 1's win count directly.
+   - If it ended early, uncheck it, enter how many rounds were actually played, and enter the raw win
+     count for that shorter session (e.g. 5-5 at round 10 of 20). The backend scales it up proportionally
+     to the 20-round scale before grading (5-5 at round 10 grades identically to 10-10) — see
+     `src/api/submit-game.js`.
+
+**LP is not a player.** It's a fixed-handicap filler (hard-pinned to a narrow negative band by the
+solver) automatically added to whichever team has fewer real players, so an uneven pool — like a 3v4 —
+still grades against a symmetric reference. It never appears as a selectable checkbox; both the Auto
+Teams generator and the live "wins to tie" preview add it in automatically wherever team sizes don't
+match, both client-side (`computeMatchup` / `generateBalancedSplits` in `public/app.js`) and
+server-side (`src/api/submit-game.js`) using the identical formula.
+
+Submitting POSTs to `/api/submit-game`, handled by `src/worker.js` → `src/api/submit-game.js`, which:
+
+1. Re-reads the current `games.json`/`players.json` from GitHub, appends the new game (after applying
+   the rounds-played scaling above).
+2. Re-runs the solver across the whole log and computes new published handicaps.
+3. Commits both updated files straight back to this repo via the GitHub API.
+4. That commit is a real push to `main`, which triggers the GitHub Actions workflow (see Deployment
    below) the same as any other push — so the Worker redeploys with the fresh data within about a
    minute, no separate database involved. GitHub stays the single source of truth for all data.
 
@@ -109,12 +134,13 @@ Sheet names never matched players' actual Epic/online display names, so `players
 | sean | Seaningo | Sean |
 | vinny | Vinyyy_13 | Vinny |
 | j2 | JimmyBwell | Jimmy |
-| lp | *(hidden — legacy/inactive)* | LP |
+| lp | *(hidden — not a real player)* | LP |
 | kman | K-Man2711 | K-Man *(new, no games yet — provisional handicap)* |
 
-The UI shows the alias as the primary name. `lp` is excluded from the leaderboard, season history, and
-the submission form, but stays in the solver's roster since historical games involving them still affect
-everyone else's numbers.
+The UI shows each player's real name as primary, with their alias underneath where the two differ
+(`displayName()` / `secondaryName()` in `public/app.js`). `lp` isn't a real player at all — see "Building
+teams and submitting a game" above — so it's excluded from every player-picker and leaderboard, but
+stays in the solver's roster since games it was auto-added to still affect everyone else's numbers.
 
 ## Deployment
 

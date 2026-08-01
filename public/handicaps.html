@@ -9,11 +9,11 @@
 <body>
 <nav class="top">
   <span class="brand">🎮 Fortnite Stat Tracker</span>
-  <a href="index.html">Statistics</a>
+  <a href="index.html">Submit a Game</a>
+  <a href="statistics.html">Statistics</a>
   <a href="handicaps.html" class="active">Handicaps</a>
   <a href="moose.html">Moose Score</a>
   <a href="history.html">Season History</a>
-  <a href="submit.html">Submit a Game</a>
 </nav>
 
 <div class="wrap">
@@ -74,7 +74,7 @@
     tbody.appendChild(el("tr", {}, [
       el("td", {}, [
         el("div", { class: "player-name" }, displayName(p) + (isNew ? " " : "")),
-        el("div", { class: "player-sub" }, p.realName && p.realName !== displayName(p) ? p.realName : ""),
+        el("div", { class: "player-sub" }, secondaryName(p)),
       ]),
       el("td", { class: "num" }, isNew ? el("span", { class: "badge new" }, "new") : fmtNum(p.publishedHC)),
       el("td", { class: "num" }, fmtRecord(record)),

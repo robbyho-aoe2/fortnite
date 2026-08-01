@@ -86,5 +86,29 @@ const robbyAfter = persistedPlayers.find((p) => p.key === "robby").publishedHC;
 console.log(`robby publishedHC before: ${robbyBefore}, after: ${robbyAfter}`);
 assert.ok(Number.isFinite(robbyAfter), "recomputed handicap should be a finite number");
 
+console.log("\n--- rounds-played scaling ---");
+
+// A game that ended 5-5 at round 10 of 20 should grade identically to 10-10.
+const shortGameBody = { date: "2026-08-02", team1: ["robby", "kyle"], team1Score: 5, roundsPlayed: 10, team2: ["doug", "sean"] };
+const shortGameRequest = new Request("http://localhost/api/submit-game", {
+  method: "POST",
+  body: JSON.stringify(shortGameBody),
+});
+const shortGameResponse = await handleSubmitGame(shortGameRequest, env);
+const shortGameResponseBody = await shortGameResponse.json();
+
+assert.strictEqual(shortGameResponse.status, 200, "short-game submission should succeed");
+assert.strictEqual(shortGameResponseBody.game.team1Score, 10, "5 wins at round 10 of 20 should scale to 10");
+assert.strictEqual(shortGameResponseBody.game.rawTeam1Score, 5, "raw reported score should be preserved");
+assert.strictEqual(shortGameResponseBody.game.roundsPlayed, 10, "roundsPlayed should be preserved");
+
+assert.deepStrictEqual(
+  validate({ date: "2026-08-01", team1: ["robby"], team1Score: 5, team2: ["doug"], roundsPlayed: 25 }, knownKeys, 20).length > 0,
+  true,
+  "roundsPlayed beyond the race total should be rejected"
+);
+
+console.log("Rounds-played scaling checks passed.");
+
 global.fetch = originalFetch;
 console.log("\nEnd-to-end pipeline test passed.");

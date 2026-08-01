@@ -3,123 +3,278 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Statistics — Fortnite Stat Tracker</title>
+<title>Submit a Game — Fortnite Stat Tracker</title>
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 <nav class="top">
   <span class="brand">🎮 Fortnite Stat Tracker</span>
-  <a href="index.html" class="active">Statistics</a>
+  <a href="index.html" class="active">Submit a Game</a>
+  <a href="statistics.html">Statistics</a>
   <a href="handicaps.html">Handicaps</a>
   <a href="moose.html">Moose Score</a>
   <a href="history.html">Season History</a>
-  <a href="submit.html">Submit a Game</a>
 </nav>
 
 <div class="wrap">
-  <h1>Statistics — 2026</h1>
-  <p class="sub">Career-average box score stats for the season.</p>
-
-  <div class="year-tabs" id="stat-tabs">
-    <button data-view="averages" class="active">Averages</button>
-    <button data-view="max">Maxes</button>
-  </div>
+  <h1>Auto Teams</h1>
+  <p class="sub">Pick who's playing tonight — this ranks every way to split them into the most even teams. LP is not a player; it's a filler automatically added to whichever side has fewer people, so uneven pools (like 3v4) still grade fairly.</p>
 
   <div class="card">
-    <div class="table-scroll">
-      <table id="stats-table">
-        <thead></thead>
-        <tbody><tr><td colspan="7" class="loading">Loading…</td></tr></tbody>
+    <div class="field">
+      <label>Who's playing?</label>
+      <div class="checkbox-grid" id="pool-grid"></div>
+    </div>
+    <button type="button" class="primary" id="generate-btn" style="margin-top: 16px;">Generate Balanced Teams</button>
+
+    <div class="table-scroll" id="splits-wrap" style="margin-top: 16px; display: none;">
+      <table id="splits-table">
+        <thead>
+          <tr>
+            <th>Team A</th>
+            <th>Team B</th>
+            <th class="num">A wins to tie</th>
+            <th class="num">B wins to tie</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
       </table>
     </div>
+  </div>
+
+  <h1>Build Teams &amp; Submit Result</h1>
+  <p class="sub">Set the two teams (or use a split from Auto Teams above), then log the result once the games are played. Handicaps recompute automatically once this is submitted.</p>
+
+  <div class="card">
+    <form id="submit-form">
+      <div class="field">
+        <label for="date">Date</label>
+        <input type="date" id="date" required />
+      </div>
+
+      <div class="field">
+        <label>Team 1</label>
+        <div class="checkbox-grid" id="team1-grid"></div>
+      </div>
+
+      <div class="field">
+        <label>Team 2</label>
+        <div class="checkbox-grid" id="team2-grid"></div>
+      </div>
+
+      <div class="card" id="matchup-preview" style="background: var(--surface-2);">
+        <div id="matchup-text" class="sub" style="margin: 0;">Pick at least one player per team to see wins needed to tie.</div>
+      </div>
+
+      <div class="checkbox-item" style="align-self: flex-start;">
+        <input type="checkbox" id="completed" checked />
+        <label for="completed" style="margin: 0;">Game completed (went the full 20 rounds)</label>
+      </div>
+
+      <div class="field" id="rounds-field" style="display: none;">
+        <label for="roundsPlayed">Rounds played (out of 20)</label>
+        <input type="number" id="roundsPlayed" min="1" max="20" value="20" />
+      </div>
+
+      <div class="field">
+        <label for="team1Score">Team 1 wins <span id="rounds-hint"></span></label>
+        <input type="number" id="team1Score" min="0" step="1" required />
+      </div>
+
+      <div id="form-message"></div>
+
+      <button type="submit" class="primary" id="submit-btn">Submit Game</button>
+    </form>
   </div>
 </div>
 
 <script src="app.js"></script>
 <script>
 (async function () {
-  const { players } = await loadData();
-  const stats = await loadStats();
+  const { players, config } = await loadData();
   const byKey = playerByKey(players);
-  const tableEl = document.getElementById("stats-table");
-  let view = "averages";
+  const roster = players.filter((p) => p.active && p.key !== "lp");
 
-  const rows = Object.entries(stats.players).map(([key, s]) => ({
-    key,
-    player: byKey[key],
-    s,
-  }));
+  document.getElementById("date").valueAsDate = new Date();
 
-  function renderAverages() {
-    tableEl.querySelector("thead").innerHTML = "";
-    tableEl.querySelector("thead").appendChild(el("tr", {}, [
-      el("th", {}, "Player"),
-      el("th", { class: "num" }, "Games"),
-      el("th", { class: "num" }, "Avg Elims"),
-      el("th", { class: "num" }, "Avg Dmg"),
-      el("th", { class: "num" }, "Avg Elim'd"),
-      el("th", { class: "num" }, "Avg Dmg Taken"),
-      el("th", { class: "num" }, "Avg Time"),
-      el("th", { class: "num" }, "K/D"),
-    ]));
+  // ---------- Auto Teams ----------
+  const poolGrid = document.getElementById("pool-grid");
+  for (const p of roster) {
+    const checkbox = el("input", { type: "checkbox", value: p.key });
+    const label = el("label", {}, [checkbox, document.createTextNode(" " + displayName(p))]);
+    label.classList.add("checkbox-item");
+    poolGrid.appendChild(label);
+  }
 
-    const sorted = [...rows].sort((a, b) => b.s.kd - a.s.kd);
-    const tbody = tableEl.querySelector("tbody");
+  function poolSelection() {
+    return [...poolGrid.querySelectorAll("input:checked")].map((i) => i.value);
+  }
+
+  document.getElementById("generate-btn").addEventListener("click", () => {
+    const pool = poolSelection();
+    const wrap = document.getElementById("splits-wrap");
+    const tbody = document.querySelector("#splits-table tbody");
     tbody.innerHTML = "";
-    for (const { player, s } of sorted) {
+
+    if (pool.length < 2) {
+      wrap.style.display = "block";
+      tbody.appendChild(el("tr", {}, [el("td", { colspan: "5", class: "empty" }, "Pick at least 2 players.")]));
+      return;
+    }
+
+    const splits = generateBalancedSplits(pool, byKey, config.raceScale).slice(0, 10);
+    wrap.style.display = "block";
+    for (const split of splits) {
+      const teamAText = split.teamA.map((k) => displayName(byKey[k])).join(", ") + (split.lpTeam === 1 ? " + LP" : "");
+      const teamBText = split.teamB.map((k) => displayName(byKey[k])).join(", ") + (split.lpTeam === 2 ? " + LP" : "");
+      const useBtn = el("button", { type: "button", class: "primary" }, "Use this split");
+      useBtn.style.padding = "6px 12px";
+      useBtn.style.fontSize = "0.85rem";
+      useBtn.addEventListener("click", () => applySplit(split.teamA, split.teamB));
       tbody.appendChild(el("tr", {}, [
-        el("td", { class: "player-name" }, displayName(player)),
-        el("td", { class: "num" }, fmtNum(s.games, 0)),
-        el("td", { class: "num" }, fmtNum(s.avgElims)),
-        el("td", { class: "num" }, fmtNum(s.avgDamageDealt, 0)),
-        el("td", { class: "num" }, fmtNum(s.avgEliminated)),
-        el("td", { class: "num" }, fmtNum(s.avgDamageTaken, 0)),
-        el("td", { class: "num" }, fmtTime(s.avgTimeAliveSeconds)),
-        el("td", { class: "num" }, fmtNum(s.kd)),
+        el("td", {}, teamAText),
+        el("td", {}, teamBText),
+        el("td", { class: "num" }, fmtNum(split.team1Threshold, 1)),
+        el("td", { class: "num" }, fmtNum(split.team2Threshold, 1)),
+        el("td", {}, useBtn),
       ]));
     }
+  });
+
+  // ---------- Manual team builder ----------
+  const team1Grid = document.getElementById("team1-grid");
+  const team2Grid = document.getElementById("team2-grid");
+
+  function buildGrid(gridEl, teamName) {
+    for (const p of roster) {
+      const checkbox = el("input", { type: "checkbox", value: p.key, name: teamName });
+      const label = el("label", {}, [checkbox, document.createTextNode(" " + displayName(p))]);
+      label.classList.add("checkbox-item");
+      gridEl.appendChild(label);
+    }
+  }
+  buildGrid(team1Grid, "team1");
+  buildGrid(team2Grid, "team2");
+
+  function selectedKeys(gridEl) {
+    return [...gridEl.querySelectorAll("input:checked")].map((i) => i.value);
   }
 
-  function renderMax() {
-    tableEl.querySelector("thead").innerHTML = "";
-    tableEl.querySelector("thead").appendChild(el("tr", {}, [
-      el("th", {}, "Player"),
-      el("th", { class: "num" }, "Max Elims"),
-      el("th", { class: "num" }, "Max Dmg"),
-      el("th", { class: "num" }, "Max Elim'd"),
-      el("th", { class: "num" }, "Max Dmg Taken"),
-      el("th", { class: "num" }, "Max Time"),
-    ]));
-
-    const sorted = [...rows].sort((a, b) => (b.s.max?.elims || 0) - (a.s.max?.elims || 0));
-    const tbody = tableEl.querySelector("tbody");
-    tbody.innerHTML = "";
-    for (const { player, s } of sorted) {
-      const m = s.max || {};
-      tbody.appendChild(el("tr", {}, [
-        el("td", { class: "player-name" }, displayName(player)),
-        el("td", { class: "num" }, fmtNum(m.elims, 0)),
-        el("td", { class: "num" }, fmtNum(m.damageDealt, 0)),
-        el("td", { class: "num" }, fmtNum(m.eliminated, 0)),
-        el("td", { class: "num" }, fmtNum(m.damageTaken, 0)),
-        el("td", { class: "num" }, fmtTime(m.timeAliveSeconds)),
-      ]));
+  function setSelected(gridEl, keys) {
+    const keySet = new Set(keys);
+    for (const input of gridEl.querySelectorAll("input")) {
+      input.checked = keySet.has(input.value);
     }
   }
 
-  function render() {
-    for (const btn of document.querySelectorAll("#stat-tabs button")) {
-      btn.classList.toggle("active", btn.dataset.view === view);
+  function applySplit(teamA, teamB) {
+    setSelected(team1Grid, teamA);
+    setSelected(team2Grid, teamB);
+    refreshAvailability();
+    updateMatchupPreview();
+    document.getElementById("submit-form").scrollIntoView({ behavior: "smooth" });
+  }
+
+  // Prevent picking the same player on both teams.
+  function refreshAvailability() {
+    const t1 = new Set(selectedKeys(team1Grid));
+    const t2 = new Set(selectedKeys(team2Grid));
+    for (const input of team1Grid.querySelectorAll("input")) {
+      const item = input.closest(".checkbox-item");
+      const blocked = t2.has(input.value) && !input.checked;
+      item.classList.toggle("disabled", blocked);
     }
-    if (view === "averages") renderAverages();
-    else renderMax();
+    for (const input of team2Grid.querySelectorAll("input")) {
+      const item = input.closest(".checkbox-item");
+      const blocked = t1.has(input.value) && !input.checked;
+      item.classList.toggle("disabled", blocked);
+    }
   }
 
-  for (const btn of document.querySelectorAll("#stat-tabs button")) {
-    btn.addEventListener("click", () => { view = btn.dataset.view; render(); });
+  function updateMatchupPreview() {
+    const t1 = selectedKeys(team1Grid);
+    const t2 = selectedKeys(team2Grid);
+    const textEl = document.getElementById("matchup-text");
+    if (t1.length === 0 || t2.length === 0) {
+      textEl.textContent = "Pick at least one player per team to see wins needed to tie.";
+      return;
+    }
+    const { lpTeam, team1Threshold, team2Threshold } = computeMatchup(t1, t2, byKey, config.raceScale);
+    const lpNote = lpTeam ? ` (Team ${lpTeam} gets an LP filler for the uneven count)` : "";
+    textEl.textContent =
+      `Team 1 needs ${fmtNum(team1Threshold, 1)} wins to tie · Team 2 needs ${fmtNum(team2Threshold, 1)} wins to tie${lpNote}`;
   }
 
-  render();
+  team1Grid.addEventListener("change", () => { refreshAvailability(); updateMatchupPreview(); });
+  team2Grid.addEventListener("change", () => { refreshAvailability(); updateMatchupPreview(); });
+
+  // ---------- Completed / rounds-played toggle ----------
+  const completedCheckbox = document.getElementById("completed");
+  const roundsField = document.getElementById("rounds-field");
+  const roundsInput = document.getElementById("roundsPlayed");
+  const roundsHint = document.getElementById("rounds-hint");
+
+  function updateRoundsUI() {
+    const completed = completedCheckbox.checked;
+    roundsField.style.display = completed ? "none" : "flex";
+    roundsHint.textContent = completed ? "(out of 20)" : `(out of ${roundsInput.value || 20} rounds played)`;
+  }
+  completedCheckbox.addEventListener("change", updateRoundsUI);
+  roundsInput.addEventListener("input", updateRoundsUI);
+  updateRoundsUI();
+
+  // ---------- Submit ----------
+  const form = document.getElementById("submit-form");
+  const messageEl = document.getElementById("form-message");
+  const submitBtn = document.getElementById("submit-btn");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    messageEl.innerHTML = "";
+
+    const payload = {
+      date: document.getElementById("date").value,
+      team1: selectedKeys(team1Grid),
+      team2: selectedKeys(team2Grid),
+      team1Score: Number(document.getElementById("team1Score").value),
+    };
+    if (!completedCheckbox.checked) {
+      payload.roundsPlayed = Number(roundsInput.value);
+    }
+
+    if (payload.team1.length === 0 || payload.team2.length === 0) {
+      messageEl.appendChild(el("div", { class: "msg error" }, "Both teams need at least one player."));
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Submitting…";
+    try {
+      const res = await fetch("/api/submit-game", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || "Submission failed");
+
+      messageEl.appendChild(el("div", { class: "msg success" },
+        `Saved! Result: ${body.game.winningTeam === 0 ? "Tie" : "Team " + body.game.winningTeam + " won"}. Handicaps have been recomputed.`
+      ));
+      form.reset();
+      document.getElementById("date").valueAsDate = new Date();
+      completedCheckbox.checked = true;
+      updateRoundsUI();
+      refreshAvailability();
+      updateMatchupPreview();
+    } catch (err) {
+      messageEl.appendChild(el("div", { class: "msg error" }, err.message));
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Submit Game";
+    }
+  });
 })();
 </script>
 </body>

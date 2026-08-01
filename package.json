@@ -3,6 +3,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node test/solver.test.js"
+    "test": "node test/solver.test.js && node test/submit-game.test.js"
   }
 }
