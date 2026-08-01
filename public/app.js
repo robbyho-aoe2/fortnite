@@ -21,6 +21,24 @@ async function loadStats() {
   return fetch(cacheBust("data/stats.json")).then((r) => r.json());
 }
 
+async function loadHcHistory() {
+  return fetch(cacheBust("data/hc-history.json")).then((r) => r.json());
+}
+
+// One snapshot is recorded per recompute (every submit/edit/delete), so
+// "stepsBack" counts recomputes, not calendar games — e.g. 1 = since the
+// most recent recompute, 20 = over the last 20. Returns null if there's
+// no earlier snapshot to compare against yet (e.g. brand new player, or
+// fewer than `stepsBack` recomputes have happened at all).
+function hcChangeOver(history, playerKey, stepsBack) {
+  if (!history || history.length < 2) return null;
+  const current = history.at(-1).publishedHC[playerKey];
+  const pastIndex = Math.max(0, history.length - 1 - stepsBack);
+  const past = history[pastIndex].publishedHC[playerKey];
+  if (current == null || past == null) return null;
+  return current - past;
+}
+
 // Kept in sync with lib/moose.js — duplicated here because app.js loads as a
 // plain (non-module) script on every page, while lib/moose.js is an ES
 // module imported directly by moose.html and lib/submit-game.js.
@@ -98,6 +116,20 @@ function fmtNum(n, digits = 2) {
 function fmtRecord(r) {
   if (!r || r.games === 0) return "—";
   return `${r.w}-${r.l}-${r.t}`;
+}
+
+// Signed display for handicap changes: "+0.42" / "-0.18" / "±0.00".
+function fmtDelta(n, digits = 2) {
+  if (n == null || Number.isNaN(n)) return "—";
+  const sign = n > 0 ? "+" : n < 0 ? "" : "±";
+  return `${sign}${Number(n).toFixed(digits)}`;
+}
+
+// Delta -> gradient position, symmetric around 0 within +/-scale (positive
+// change green, negative red, 0 yellow).
+function deltaColor(n, scale) {
+  if (n == null) return null;
+  return gradientColor(0.5 + Math.max(-0.5, Math.min(0.5, n / (2 * scale))));
 }
 
 // Red -> yellow -> green heat-map color for a value t in [0, 1] (0 = red/worst,

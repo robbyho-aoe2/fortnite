@@ -33,11 +33,13 @@ console.log("\n--- end-to-end submit pipeline (mocked GitHub) ---");
 
 const config = JSON.parse(fs.readFileSync(path.join(dataDir, "config.json"), "utf-8"));
 const games = JSON.parse(fs.readFileSync(path.join(dataDir, "games.json"), "utf-8"));
+const hcHistory = JSON.parse(fs.readFileSync(path.join(dataDir, "hc-history.json"), "utf-8"));
 
 const mockFiles = {
   "public/data/config.json": JSON.stringify(config),
   "public/data/players.json": JSON.stringify(players),
   "public/data/games.json": JSON.stringify(games),
+  "public/data/hc-history.json": JSON.stringify(hcHistory),
 };
 
 // Minimal fetch mock intercepting the GitHub Contents API calls made by public/lib/github.js
@@ -88,6 +90,11 @@ assert.ok(Number.isFinite(robbyAfter), "recomputed handicap should be a finite n
 const kmanBefore = players.find((p) => p.key === "kman");
 const kmanAfter = persistedPlayers.find((p) => p.key === "kman");
 assert.deepStrictEqual(kmanAfter, kmanBefore, "a non-roster player's record should be untouched by a recompute");
+
+const historyAfterSubmit = JSON.parse(mockFiles["public/data/hc-history.json"]);
+assert.strictEqual(historyAfterSubmit.length, hcHistory.length + 1, "a submission should append exactly one history snapshot");
+assert.strictEqual(historyAfterSubmit.at(-1).gameId, result.game.id, "the new snapshot should be tagged with the new game's id");
+assert.strictEqual(historyAfterSubmit.at(-1).publishedHC.robby, robbyAfter, "the snapshot should record the freshly recomputed handicap");
 
 console.log("\n--- rounds-played scaling ---");
 

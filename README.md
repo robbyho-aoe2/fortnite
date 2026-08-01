@@ -13,10 +13,10 @@ this repo (which needs a GitHub write credential) runs in the visitor's own brow
 - **`public/`** — the entire site, deployed as-is (no build step).
   - `index.html` — the landing page: Auto Teams generator + manual team builder/score submission (see below)
   - `statistics.html` — career-average and max box-score stats per player
-  - `handicaps.html` — current handicaps + live 2026 win/loss record
+  - `handicaps.html` — current handicaps, plus how much each changed since the last recompute and over the last 20
   - `moose.html` — Moose Score leaderboard (see below)
   - `history.html` — season archives for 2023–2025, live-computed 2026
-  - `data/` — the actual data: `players.json`, `games.json`, `config.json`, `stats.json`
+  - `data/` — the actual data: `players.json`, `games.json`, `config.json`, `stats.json`, `hc-history.json`
   - `app.js` — shared rendering helpers loaded as a plain script on every page
   - `lib/` — ES modules imported directly by pages that need them (not bundled with anything):
     - `submit-game.js` — validates a submitted match, re-solves handicaps, commits the result back to this repo via the GitHub API. This is the client-side successor to what was briefly a Cloudflare Worker route — see git history if you're curious, but there's no Worker anymore.
@@ -83,6 +83,18 @@ All the tunable constants (`tau`, iteration limits, step sizes, bounds, window s
 `public/data/config.json`, not hardcoded in the solver — recalibrating the system means editing that file.
 
 **Published handicap = base + strength factor.** This is what's shown on the leaderboard.
+
+**Tracking change over time.** `hc-history.json` holds one snapshot of every player's published handicap
+per recompute (submit, edit, or delete all count) — appended and trimmed to the most recent 250 entries
+by `resolveAndCommit()` in `lib/submit-game.js`. The Handicaps page uses it (`hcChangeOver()` in `app.js`)
+to show how much a player's number moved since the last recompute and over the last 20, instead of a
+static win/loss column — read as "recomputes ago," not "calendar games ago," since a recompute can move
+someone who wasn't even in the triggering game (see the LP-exclusion note above). A new player with fewer
+snapshots than the window, or no history at all yet, shows "—" rather than a misleading partial number.
+
+**Pending players.** A player can exist in `players.json` (so they're selectable for a game) without
+being "official" yet — set `"pending": true` and the Handicaps leaderboard skips them, matching the group's
+call on when someone's actually gotten enough games in to have a meaningful number worth publishing.
 
 ## Building teams and submitting a game
 

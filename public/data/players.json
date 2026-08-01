@@ -422,6 +422,7 @@
     "baseHC": 5,
     "publishedHC": 5,
     "seasonArchive": {},
-    "strFac": 0
+    "strFac": 0,
+    "pending": true
   }
 ]

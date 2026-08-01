@@ -27,8 +27,8 @@
           <tr>
             <th>Player</th>
             <th class="num">Handicap</th>
-            <th class="num">2026 Record</th>
-            <th class="num">2026 Win%</th>
+            <th class="num">Δ Last Game</th>
+            <th class="num">Δ Last 20</th>
           </tr>
         </thead>
         <tbody><tr><td colspan="4" class="loading">Loading…</td></tr></tbody>
@@ -59,31 +59,37 @@
 <script>
 (async function () {
   const { players, games } = await loadData();
+  const history = await loadHcHistory();
   const byKey = playerByKey(players);
   const games2026 = gamesInYear(games, 2026);
 
-  const visiblePlayers = players.filter((p) => p.active);
+  // Pending players (e.g. someone new who hasn't officially joined the
+  // group yet) don't have an established handicap worth showing here.
+  const visiblePlayers = players.filter((p) => p.active && !p.pending);
   const rows = visiblePlayers
-    .map((p) => ({ p, record: record2026(p, games) }))
-    .sort((a, b) => (b.p.publishedHC || 0) - (a.p.publishedHC || 0));
+    .sort((a, b) => (b.publishedHC || 0) - (a.publishedHC || 0));
 
   const tbody = document.querySelector("#leaderboard tbody");
   tbody.innerHTML = "";
-  for (const { p, record } of rows) {
-    const isNew = record.games === 0;
-    const winPctCell = el("td", { class: "num" }, fmtPct(record.winPct));
-    if (record.winPct != null) {
-      winPctCell.style.color = gradientColor(record.winPct);
-      winPctCell.style.fontWeight = "700";
-    }
+  for (const p of rows) {
+    const sinceLastGame = hcChangeOver(history, p.key, 1);
+    const last20 = hcChangeOver(history, p.key, 20);
+
+    const lastGameCell = el("td", { class: "num" }, fmtDelta(sinceLastGame));
+    const last20Cell = el("td", { class: "num" }, fmtDelta(last20));
+    const lastGameColor = deltaColor(sinceLastGame, 1);
+    const last20Color = deltaColor(last20, 3);
+    if (lastGameColor) { lastGameCell.style.color = lastGameColor; lastGameCell.style.fontWeight = "700"; }
+    if (last20Color) { last20Cell.style.color = last20Color; last20Cell.style.fontWeight = "700"; }
+
     tbody.appendChild(el("tr", {}, [
       el("td", {}, [
-        el("div", { class: "player-name" }, displayName(p) + (isNew ? " " : "")),
+        el("div", { class: "player-name" }, displayName(p)),
         el("div", { class: "player-sub" }, secondaryName(p)),
       ]),
-      el("td", { class: "num" }, isNew ? el("span", { class: "badge new" }, "new") : fmtNum(p.publishedHC)),
-      el("td", { class: "num" }, fmtRecord(record)),
-      winPctCell,
+      el("td", { class: "num" }, fmtNum(p.publishedHC)),
+      lastGameCell,
+      last20Cell,
     ]));
   }
 

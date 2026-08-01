@@ -11,8 +11,14 @@ import { repoConfig } from "./repo-config.js";
 const GAMES_PATH = "public/data/games.json";
 const PLAYERS_PATH = "public/data/players.json";
 const CONFIG_PATH = "public/data/config.json";
+const HC_HISTORY_PATH = "public/data/hc-history.json";
 
 const ROSTER_ORDER = ["robby", "matt", "mn", "doug", "kyle", "jim", "bello", "chris", "collin", "sean", "vinny", "j2", "lp"];
+
+// How many recompute snapshots to keep for the Handicaps page's "change
+// since last game" / "change over last 20 games" columns. Comfortably more
+// than the 20-snapshot lookback needs, without growing the file unbounded.
+const MAX_HISTORY_LENGTH = 250;
 
 // A submitted game can be corrected for a limited window afterward (typos,
 // wrong score, forgot a player) without leaving a stray duplicate in the
@@ -117,7 +123,7 @@ function buildGameRecord(payload, players, raceConfig, id) {
 // Re-solves handicaps across the given game log and commits both files back
 // to GitHub. Shared by submitGame and editGame — the only difference between
 // them is how `updatedGames` got built.
-async function resolveAndCommit(updatedGames, players, raceConfig, config, gamesFile, playersFile, commitId) {
+async function resolveAndCommit(updatedGames, players, raceConfig, config, gamesFile, playersFile, historyFile, history, commitId) {
   const knownKeys = players.map((p) => p.key);
   const rosterOrder = ROSTER_ORDER.filter((k) => knownKeys.includes(k));
   const currentBaseHC = {};
@@ -146,35 +152,45 @@ async function resolveAndCommit(updatedGames, players, raceConfig, config, games
     };
   });
 
+  // One snapshot per recompute (submit/edit/delete all count), so the
+  // Handicaps page can show "change since last game" / "change over the
+  // last 20" without re-solving the whole log just to render a page.
+  const snapshotHC = Object.fromEntries(updatedPlayers.filter((p) => p.publishedHC != null).map((p) => [p.key, p.publishedHC]));
+  const updatedHistory = [...history, { gameId: commitId, publishedHC: snapshotHC }].slice(-MAX_HISTORY_LENGTH);
+
   await putFile(config, GAMES_PATH, JSON.stringify(updatedGames, null, 2), gamesFile.sha, `Update game ${commitId}`);
   await putFile(config, PLAYERS_PATH, JSON.stringify(updatedPlayers, null, 2), playersFile.sha, `Recompute handicaps after ${commitId}`);
+  await putFile(config, HC_HISTORY_PATH, JSON.stringify(updatedHistory, null, 2), historyFile.sha, `Record handicap history after ${commitId}`);
 
   return updatedPlayers;
 }
 
 async function loadCurrentState(config) {
-  const [configFile, playersFile, gamesFile] = await Promise.all([
+  const [configFile, playersFile, gamesFile, historyFile] = await Promise.all([
     getFile(config, CONFIG_PATH),
     getFile(config, PLAYERS_PATH),
     getFile(config, GAMES_PATH),
+    getFile(config, HC_HISTORY_PATH),
   ]);
   return {
     raceConfig: JSON.parse(configFile.content),
     players: JSON.parse(playersFile.content),
     games: JSON.parse(gamesFile.content),
+    history: JSON.parse(historyFile.content),
     playersFile,
     gamesFile,
+    historyFile,
   };
 }
 
 // Throws on validation or GitHub API failure; returns { game, breakeven, players } on success.
 async function submitGame(payload, config = repoConfig) {
-  const { raceConfig, players, games, playersFile, gamesFile } = await loadCurrentState(config);
+  const { raceConfig, players, games, playersFile, gamesFile, historyFile, history } = await loadCurrentState(config);
 
   const { game, breakeven } = buildGameRecord(payload, players, raceConfig, `game-${Date.now()}`);
   const updatedGames = [...games, game].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
 
-  const updatedPlayers = await resolveAndCommit(updatedGames, players, raceConfig, config, gamesFile, playersFile, game.id);
+  const updatedPlayers = await resolveAndCommit(updatedGames, players, raceConfig, config, gamesFile, playersFile, historyFile, history, game.id);
 
   return { game, breakeven, players: updatedPlayers };
 }
@@ -186,7 +202,7 @@ async function editGame(gameId, payload, config = repoConfig) {
     throw new Error("This game is no longer editable (the 24-hour edit window has passed).");
   }
 
-  const { raceConfig, players, games, playersFile, gamesFile } = await loadCurrentState(config);
+  const { raceConfig, players, games, playersFile, gamesFile, historyFile, history } = await loadCurrentState(config);
   const index = games.findIndex((g) => g.id === gameId);
   if (index === -1) throw new Error(`Game ${gameId} not found — it may have already been edited by someone else.`);
 
@@ -195,7 +211,7 @@ async function editGame(gameId, payload, config = repoConfig) {
   updatedGames[index] = game;
   updatedGames.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
 
-  const updatedPlayers = await resolveAndCommit(updatedGames, players, raceConfig, config, gamesFile, playersFile, game.id);
+  const updatedPlayers = await resolveAndCommit(updatedGames, players, raceConfig, config, gamesFile, playersFile, historyFile, history, game.id);
 
   return { game, breakeven, players: updatedPlayers };
 }
@@ -208,13 +224,13 @@ async function deleteGame(gameId, config = repoConfig) {
     throw new Error("This game is no longer editable (the 24-hour edit window has passed).");
   }
 
-  const { raceConfig, players, games, playersFile, gamesFile } = await loadCurrentState(config);
+  const { raceConfig, players, games, playersFile, gamesFile, historyFile, history } = await loadCurrentState(config);
   if (!games.some((g) => g.id === gameId)) {
     throw new Error(`Game ${gameId} not found — it may have already been edited by someone else.`);
   }
 
   const updatedGames = games.filter((g) => g.id !== gameId);
-  const updatedPlayers = await resolveAndCommit(updatedGames, players, raceConfig, config, gamesFile, playersFile, `${gameId} (deleted)`);
+  const updatedPlayers = await resolveAndCommit(updatedGames, players, raceConfig, config, gamesFile, playersFile, historyFile, history, `${gameId} (deleted)`);
 
   return { deletedId: gameId, players: updatedPlayers };
 }
