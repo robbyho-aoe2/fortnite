@@ -17,8 +17,23 @@ for (const p of players) currentBaseHC[p.key] = p.baseHC || 0;
 
 console.log("--- Sanity: breakeven / grading ---");
 const bk = computeBreakeven(12.24, 14.6, config.raceScale);
-assert.ok(Math.abs(bk.team1Threshold - 7.64) < 0.01, "breakeven should match manual formula");
+assert.strictEqual(bk.team1Threshold, 8, "breakeven should round to the nearest whole win count");
+assert.strictEqual(bk.team1Threshold + bk.team2Threshold, config.raceScale.total, "thresholds should sum to the race total");
 console.log("breakeven ok:", bk);
+
+console.log("\n--- Sanity: exact-half tie-break rounds toward the higher-handicap team ---");
+// team1 total 15, team2 total 10 -> raw threshold (15-10)+10 = 15.0, not a half case; use a case that lands on .5:
+// diff=-4.5 -> raw threshold 5.5. team2 has the higher total, so team2's number (14.5->15) should round up,
+// meaning team1's threshold rounds DOWN to 5.
+const higherTeam2 = computeBreakeven(10, 14.5, config.raceScale);
+assert.strictEqual(higherTeam2.team1Threshold, 5, "team1 (lower HC) should round down on an exact half");
+assert.strictEqual(higherTeam2.team2Threshold, 15, "team2 (higher HC) should round up on an exact half");
+
+// Flip it: team1 has the higher total now, so team1's number should round up instead.
+const higherTeam1 = computeBreakeven(14.5, 10, config.raceScale);
+assert.strictEqual(higherTeam1.team1Threshold, 15, "team1 (higher HC) should round up on an exact half");
+assert.strictEqual(higherTeam1.team2Threshold, 5, "team2 (lower HC) should round down on an exact half");
+console.log("tie-break rounding ok");
 
 console.log("\n--- Re-running solver from current snapshot (should stay close) ---");
 const start = Date.now();

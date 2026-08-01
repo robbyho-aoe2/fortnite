@@ -4,9 +4,19 @@
 //      making every player's recency-weighted, handicap-adjusted win rate ~50%.
 //   2. Strength factor: a current-record momentum nudge added on top of the base.
 
+// "Wins needed to tie" is a real target line announced before playing, so it
+// has to be a whole number. Round to the nearest integer; on an exact half
+// (e.g. 7.5/12.5), round the higher-handicap team's number up — they're the
+// stronger side, so the tie-break tightens the target against them, not for them.
 function computeBreakeven(team1HCTotal, team2HCTotal, raceScale) {
   const diff = team1HCTotal - team2HCTotal;
-  const team1Threshold = diff + raceScale.half;
+  const rawTeam1Threshold = diff + raceScale.half;
+  const isExactHalf = Math.abs(rawTeam1Threshold - Math.floor(rawTeam1Threshold) - 0.5) < 1e-9;
+
+  const team1Threshold = isExactHalf
+    ? (team1HCTotal >= team2HCTotal ? Math.ceil(rawTeam1Threshold) : Math.floor(rawTeam1Threshold))
+    : Math.round(rawTeam1Threshold);
+
   const team2Threshold = raceScale.total - team1Threshold;
   return { team1Threshold, team2Threshold };
 }

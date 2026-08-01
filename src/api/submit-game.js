@@ -8,7 +8,7 @@
 // Actions workflow.
 
 import { getFile, putFile } from "../lib/github.js";
-import { recomputeAllHandicaps } from "../lib/solver.js";
+import { recomputeAllHandicaps, computeBreakeven, teamHCTotal } from "../lib/solver.js";
 
 const GAMES_PATH = "public/data/games.json";
 const PLAYERS_PATH = "public/data/players.json";
@@ -95,10 +95,11 @@ async function handleSubmitGame(request, env) {
   const roundsPlayed = payload.roundsPlayed || config.raceScale.total;
   const scaledTeam1Score = payload.team1Score * (config.raceScale.total / roundsPlayed);
 
-  const t1 = teamHCTotalFrom(payload.team1, players);
-  const t2 = teamHCTotalFrom(payload.team2, players);
-  const breakeven = t1.total - t2.total + config.raceScale.half;
-  const winningTeam = scaledTeam1Score > breakeven ? 1 : scaledTeam1Score < breakeven ? 2 : 0;
+  const hcByKey = Object.fromEntries(players.map((p) => [p.key, p.publishedHC || 0]));
+  const t1Total = teamHCTotal(payload.team1, hcByKey);
+  const t2Total = teamHCTotal(payload.team2, hcByKey);
+  const { team1Threshold, team2Threshold } = computeBreakeven(t1Total, t2Total, config.raceScale);
+  const winningTeam = scaledTeam1Score > team1Threshold ? 1 : scaledTeam1Score < team1Threshold ? 2 : 0;
 
   const newGame = {
     id: `game-${Date.now()}`,
@@ -153,14 +154,9 @@ async function handleSubmitGame(request, env) {
 
   return jsonResponse({
     game: newGame,
-    breakeven: { team1Threshold: breakeven, team2Threshold: config.raceScale.total - breakeven },
+    breakeven: { team1Threshold, team2Threshold },
     players: updatedPlayers,
   });
-}
-
-function teamHCTotalFrom(teamKeys, players) {
-  const byKey = Object.fromEntries(players.map((p) => [p.key, p.publishedHC || 0]));
-  return { total: teamKeys.reduce((sum, k) => sum + (byKey[k] || 0), 0) };
 }
 
 export { handleSubmitGame, validate };

@@ -135,8 +135,8 @@
       tbody.appendChild(el("tr", {}, [
         el("td", {}, teamAText),
         el("td", {}, teamBText),
-        el("td", { class: "num" }, fmtNum(split.team1Threshold, 1)),
-        el("td", { class: "num" }, fmtNum(split.team2Threshold, 1)),
+        el("td", { class: "num" }, fmtNum(split.team1Threshold, 0)),
+        el("td", { class: "num" }, fmtNum(split.team2Threshold, 0)),
         el("td", {}, useBtn),
       ]));
     }
@@ -203,7 +203,7 @@
     const { lpTeam, team1Threshold, team2Threshold } = computeMatchup(t1, t2, byKey, config.raceScale);
     const lpNote = lpTeam ? ` (Team ${lpTeam} gets an LP filler for the uneven count)` : "";
     textEl.textContent =
-      `Team 1 needs ${fmtNum(team1Threshold, 1)} wins to tie · Team 2 needs ${fmtNum(team2Threshold, 1)} wins to tie${lpNote}`;
+      `Team 1 needs ${fmtNum(team1Threshold, 0)} wins to tie · Team 2 needs ${fmtNum(team2Threshold, 0)} wins to tie${lpNote}`;
   }
 
   team1Grid.addEventListener("change", () => { refreshAvailability(); updateMatchupPreview(); });

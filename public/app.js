@@ -99,9 +99,23 @@ function computeMatchup(team1Keys, team2Keys, byKey, raceScale) {
   }
   const hc1 = team1.reduce((sum, k) => sum + (byKey[k]?.publishedHC || 0), 0);
   const hc2 = team2.reduce((sum, k) => sum + (byKey[k]?.publishedHC || 0), 0);
-  const team1Threshold = hc1 - hc2 + raceScale.half;
-  const team2Threshold = raceScale.total - team1Threshold;
+  const { team1Threshold, team2Threshold } = roundedBreakeven(hc1, hc2, raceScale);
   return { team1Effective: team1, team2Effective: team2, lpTeam, team1Threshold, team2Threshold };
+}
+
+// Kept in sync with computeBreakeven in src/lib/solver.js (see the comment
+// there for why the tie-break exists) — duplicated for the same reason as
+// the Moose formula above: public/ and src/ aren't bundled together.
+function roundedBreakeven(team1HCTotal, team2HCTotal, raceScale) {
+  const diff = team1HCTotal - team2HCTotal;
+  const rawTeam1Threshold = diff + raceScale.half;
+  const isExactHalf = Math.abs(rawTeam1Threshold - Math.floor(rawTeam1Threshold) - 0.5) < 1e-9;
+
+  const team1Threshold = isExactHalf
+    ? (team1HCTotal >= team2HCTotal ? Math.ceil(rawTeam1Threshold) : Math.floor(rawTeam1Threshold))
+    : Math.round(rawTeam1Threshold);
+
+  return { team1Threshold, team2Threshold: raceScale.total - team1Threshold };
 }
 
 function combinations(arr, k) {
