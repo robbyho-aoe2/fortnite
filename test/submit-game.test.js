@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import assert from "assert";
 import { fileURLToPath } from "url";
-import { validate } from "../functions/api/submit-game.js";
+import { validate } from "../src/api/submit-game.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dataDir = path.join(__dirname, "..", "public", "data");
@@ -40,7 +40,7 @@ const mockFiles = {
   "public/data/games.json": JSON.stringify(games),
 };
 
-// Minimal fetch mock intercepting the GitHub Contents API calls made by functions/_lib/github.js
+// Minimal fetch mock intercepting the GitHub Contents API calls made by src/lib/github.js
 const originalFetch = global.fetch;
 global.fetch = async (url, options = {}) => {
   const match = String(url).match(/contents\/([^?]+)/);
@@ -60,7 +60,7 @@ global.fetch = async (url, options = {}) => {
   throw new Error("unexpected fetch in mock: " + url);
 };
 
-const { onRequestPost } = await import("../functions/api/submit-game.js");
+const { handleSubmitGame } = await import("../src/api/submit-game.js");
 
 const env = { GITHUB_TOKEN: "fake", GITHUB_OWNER: "robbyho-aoe2", GITHUB_REPO: "fortnite", GITHUB_BRANCH: "main" };
 const requestBody = { date: "2026-08-01", team1: ["robby", "kyle"], team1Score: 13, team2: ["doug", "sean"] };
@@ -69,7 +69,7 @@ const request = new Request("http://localhost/api/submit-game", {
   body: JSON.stringify(requestBody),
 });
 
-const response = await onRequestPost({ request, env });
+const response = await handleSubmitGame(request, env);
 const responseBody = await response.json();
 
 assert.strictEqual(response.status, 200, "submission should succeed");

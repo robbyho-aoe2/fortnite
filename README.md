@@ -5,18 +5,25 @@ replacing the old set of Google Sheets with a single site backed by this repo.
 
 ## What's here
 
-- **`public/`** — the static site (Cloudflare Pages serves this directly, no build step).
+This is a single Cloudflare **Worker with static assets** (`fortnite` project) — not classic Cloudflare
+Pages. Cloudflare's dashboard created a Worker rather than a Pages project when this was set up, so the
+code matches that shape rather than fighting it (Workers-with-assets is also the model Cloudflare is
+pushing going forward).
+
+- **`public/`** — the static site, served via the `ASSETS` binding — no build step.
   - `index.html` — Statistics: career-average and max box-score stats per player
   - `handicaps.html` — current handicaps + live 2026 win/loss record
   - `moose.html` — Moose Score leaderboard (see below)
   - `history.html` — season archives for 2023–2025, live-computed 2026
   - `submit.html` — match submission form
   - `data/` — the actual data: `players.json`, `games.json`, `config.json`, `stats.json`
-- **`functions/`** — Cloudflare Pages Functions (the backend).
+- **`src/`** — the Worker (the backend).
+  - `worker.js` — the entrypoint. Routes `POST /api/submit-game` by hand (Workers have no file-based
+    routing like Pages Functions did) and falls through to `env.ASSETS.fetch(request)` for everything else
   - `api/submit-game.js` — validates a submitted match, re-solves handicaps, commits the result back to this repo via the GitHub API
-  - `_lib/solver.js` — the handicap engine (see below)
-  - `_lib/moose.js` — the Moose Score formula (also duplicated in `public/app.js` for client-side rendering — `public/` and `functions/` are separate deploy roots, so this small pure formula can't be shared via import; keep both in sync if it changes)
-  - `_lib/github.js` — thin GitHub Contents API client used to read/write the JSON data files
+  - `lib/solver.js` — the handicap engine (see below)
+  - `lib/moose.js` — the Moose Score formula (also duplicated in `public/app.js` for client-side rendering — static assets and the Worker script aren't bundled together, so this small pure formula can't be shared via import; keep both in sync if it changes)
+  - `lib/github.js` — thin GitHub Contents API client used to read/write the JSON data files
 - **`test/`** — solver + pipeline tests (`npm test`), including an end-to-end test of the submission flow with a mocked GitHub API.
 
 ## How handicaps work
@@ -41,12 +48,13 @@ All the tunable constants (`tau`, iteration limits, step sizes, bounds, window s
 ## How a submitted game flows through the system
 
 1. Someone fills out `submit.html`: picks Team 1, Team 2, and how many games Team 1 won in the session.
-2. That POSTs to `/api/submit-game` (a Pages Function).
-3. The function re-reads the current `games.json`/`players.json` from GitHub, appends the new game,
+2. That POSTs to `/api/submit-game`, handled by `src/worker.js` → `src/api/submit-game.js`.
+3. That function re-reads the current `games.json`/`players.json` from GitHub, appends the new game,
    re-runs the solver across the whole log, and computes new published handicaps.
 4. It commits both updated files straight back to this repo via the GitHub API.
-5. That commit triggers a normal Cloudflare Pages redeploy — the site reflects the new numbers within
-   about a minute, no separate database involved. GitHub stays the single source of truth for all data.
+5. That commit is a real push to `main`, which triggers the GitHub Actions workflow (see Deployment
+   below) the same as any other push — so the Worker redeploys with the fresh data within about a
+   minute, no separate database involved. GitHub stays the single source of truth for all data.
 
 ## Season history vs. live 2026
 
@@ -110,31 +118,35 @@ everyone else's numbers.
 
 ## Deployment
 
-Deploys via **GitHub Actions** (`.github/workflows/deploy.yml`), not Cloudflare's own Git-connected
-build system. Cloudflare's "Builds" feature hit an unresolvable account-level bug during setup (a stale
-build-token attribution to a departed org member that neither recreating the token nor recreating the
-project fixed) — GitHub Actions runs `wrangler pages deploy` instead, sidestepping it entirely. Same
-end result: push to `main`, site redeploys.
+This is a Cloudflare **Worker** (project name `fortnite`), deployed via **GitHub Actions**
+(`.github/workflows/deploy.yml`) rather than Cloudflare's own Git-connected build system.
+Cloudflare's "Builds" feature hit an unresolvable account-level bug during setup (a stale build-token
+attribution to a departed org member that persisted through recreating both the token and the whole
+project) — GitHub Actions runs `wrangler deploy` instead, sidestepping it entirely. Same end result:
+push to `main`, site redeploys.
 
 **One-time setup:**
 
-1. The Cloudflare Pages project (`fortnite`) already exists — created via Workers & Pages, connected to
-   this repo, with its own Git-triggered build **disabled** (Settings → Builds) so it doesn't also try
-   to deploy and fail alongside the Actions workflow.
+1. The Cloudflare Worker project (`fortnite`) already exists, connected to this repo. Its own
+   Git-triggered build should stay **disabled** (Settings → Builds) so it doesn't also try to deploy
+   and fail alongside the Actions workflow — only GitHub Actions should be doing deploys.
 2. In **this GitHub repo's** Settings → Secrets and variables → **Actions**, add:
-   - `CLOUDFLARE_API_TOKEN` — a token scoped to **Account → Cloudflare Pages → Edit**
+   - `CLOUDFLARE_API_TOKEN` — a token scoped to **Account → Cloudflare Pages → Edit** (this permission
+     name is a holdover — it also covers Workers deploys)
    - `CLOUDFLARE_ACCOUNT_ID` — the Cloudflare account ID
-3. In the **Cloudflare Pages project's** Settings → Variables and Secrets, add (these are read by
-   `/api/submit-game` at runtime, separate from the two above which are only used at deploy time):
+3. In the **Worker's** Settings → **Variables and Secrets** (the top-level one — not the separate,
+   differently-scoped "Variables and secrets" nested under the Builds section, which only applies to
+   the build process and isn't visible to the deployed Worker at runtime), add — these are read by
+   `/api/submit-game` at request time, separate from the two above which are only used at deploy time:
    - `GITHUB_TOKEN` — a fine-grained GitHub Personal Access Token scoped to **only this repo**, with
      **Contents: Read and write** permission. This is what lets the submit function commit new games.
    - `GITHUB_OWNER` — `robbyho-aoe2`
    - `GITHUB_REPO` — `fortnite`
    - `GITHUB_BRANCH` — `main`
-4. Push to `main` (or run the workflow manually via Actions → Deploy to Cloudflare Pages → Run workflow).
+4. Push to `main` (or run the workflow manually via Actions → Deploy to Cloudflare Workers → Run workflow).
 
-No database, no separate server — Cloudflare Pages + Functions + this repo's own `data/` files are the
-entire stack; GitHub Actions is just the delivery mechanism.
+No database, no separate server — the Worker + its `ASSETS` binding + this repo's own `data/` files are
+the entire stack; GitHub Actions is just the delivery mechanism.
 
 ## Roadmap (not built yet)
 

@@ -13,9 +13,9 @@ async function loadStats() {
   return fetch("data/stats.json").then((r) => r.json());
 }
 
-// Kept in sync with functions/_lib/moose.js — duplicated here because the
-// static site (public/) and the Pages Functions (functions/) are separate
-// deploy roots, so this small pure formula can't be shared via import.
+// Kept in sync with src/lib/moose.js — duplicated here because static assets
+// (public/) and the Worker script (src/) are bundled/served separately, so
+// this small pure formula can't be shared via import.
 function computeMooseScore(stats, mooseCfg) {
   const { normalization: n, weights: w, regression: r } = mooseCfg;
   const raw =

@@ -3,10 +3,10 @@
 //
 // Validates the submission, appends it to the game log, re-solves handicaps
 // across the full history, and commits both files back to GitHub. The
-// resulting commit triggers a normal Pages redeploy.
+// resulting commit triggers a redeploy via the GitHub Actions workflow.
 
-import { getFile, putFile } from "../_lib/github.js";
-import { recomputeAllHandicaps } from "../_lib/solver.js";
+import { getFile, putFile } from "../lib/github.js";
+import { recomputeAllHandicaps } from "../lib/solver.js";
 
 const GAMES_PATH = "public/data/games.json";
 const PLAYERS_PATH = "public/data/players.json";
@@ -54,7 +54,7 @@ function validate(payload, knownKeys) {
   return errors;
 }
 
-async function onRequestPost({ request, env }) {
+async function handleSubmitGame(request, env) {
   let payload;
   try {
     payload = await request.json();
@@ -142,4 +142,4 @@ function teamHCTotalFrom(teamKeys, players) {
   return { total: teamKeys.reduce((sum, k) => sum + (byKey[k] || 0), 0) };
 }
 
-export { onRequestPost, validate };
+export { handleSubmitGame, validate };
