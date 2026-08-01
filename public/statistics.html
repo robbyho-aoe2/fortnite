@@ -67,6 +67,9 @@
     const tbody = tableEl.querySelector("tbody");
     tbody.innerHTML = "";
     for (const { player, s } of sorted) {
+      const kdCell = el("td", { class: "num" }, fmtNum(s.kd));
+      kdCell.style.color = gradientColor(s.kd / 2);
+      kdCell.style.fontWeight = "700";
       tbody.appendChild(el("tr", {}, [
         el("td", { class: "player-name" }, displayName(player)),
         el("td", { class: "num" }, fmtNum(s.games, 0)),
@@ -75,7 +78,7 @@
         el("td", { class: "num" }, fmtNum(s.avgEliminated)),
         el("td", { class: "num" }, fmtNum(s.avgDamageTaken, 0)),
         el("td", { class: "num" }, fmtTime(s.avgTimeAliveSeconds)),
-        el("td", { class: "num" }, fmtNum(s.kd)),
+        kdCell,
       ]));
     }
   }

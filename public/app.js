@@ -84,6 +84,28 @@ function fmtRecord(r) {
   return `${r.w}-${r.l}-${r.t}`;
 }
 
+// Red -> yellow -> green heat-map color for a value t in [0, 1] (0 = red/worst,
+// 0.5 = yellow/neutral, 1 = green/best). Two-segment lerp through yellow
+// avoids the muddy brown a direct red->green interpolation produces.
+function gradientColor(t) {
+  const clamped = Math.max(0, Math.min(1, t));
+  const red = [224, 101, 91];    // --loss
+  const yellow = [201, 169, 74]; // --tie
+  const green = [63, 191, 127];  // --win
+  const [c1, c2, localT] = clamped < 0.5
+    ? [red, yellow, clamped / 0.5]
+    : [yellow, green, (clamped - 0.5) / 0.5];
+  const mix = (i) => Math.round(c1[i] + (c2[i] - c1[i]) * localT);
+  return `rgb(${mix(0)}, ${mix(1)}, ${mix(2)})`;
+}
+
+// Auto Teams fairness -> gradient position. fairness is |threshold - half|,
+// 0 at a dead-even 10-10 split (green) up to `half` at the most lopsided
+// possible split like 20-0 (red).
+function fairnessColor(fairness, raceScale) {
+  return gradientColor(1 - Math.min(fairness / raceScale.half, 1));
+}
+
 // LP isn't a real player — it's a fixed-handicap filler automatically added
 // to whichever team has fewer real players, so uneven sessions (e.g. 3v4)
 // still grade against a symmetric reference. Mirrors src/lib/solver.js's

@@ -80,13 +80,18 @@
       return;
     }
     for (const { p, record } of rows) {
+      const winPctCell = el("td", { class: "num" }, fmtPct(record.winPct));
+      if (record.winPct != null) {
+        winPctCell.style.color = gradientColor(record.winPct);
+        winPctCell.style.fontWeight = "700";
+      }
       tableBody.appendChild(el("tr", {}, [
         el("td", { class: "player-name" }, displayName(p)),
         el("td", { class: "num" }, fmtNum(record.games, 0)),
         el("td", { class: "num win" }, fmtNum(record.w, record.w % 1 === 0 ? 0 : 2)),
         el("td", { class: "num loss" }, fmtNum(record.l, record.l % 1 === 0 ? 0 : 2)),
         el("td", { class: "num tie" }, fmtNum(record.t, record.t % 1 === 0 ? 0 : 2)),
-        el("td", { class: "num" }, fmtPct(record.winPct)),
+        winPctCell,
       ]));
     }
   }

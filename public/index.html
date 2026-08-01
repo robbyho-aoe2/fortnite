@@ -132,11 +132,18 @@
       useBtn.style.padding = "6px 12px";
       useBtn.style.fontSize = "0.85rem";
       useBtn.addEventListener("click", () => applySplit(split.teamA, split.teamB));
+      const color = fairnessColor(split.fairness, config.raceScale);
+      const aCell = el("td", { class: "num" }, fmtNum(split.team1Threshold, 0));
+      const bCell = el("td", { class: "num" }, fmtNum(split.team2Threshold, 0));
+      aCell.style.color = color;
+      bCell.style.color = color;
+      aCell.style.fontWeight = "700";
+      bCell.style.fontWeight = "700";
       tbody.appendChild(el("tr", {}, [
         el("td", {}, teamAText),
         el("td", {}, teamBText),
-        el("td", { class: "num" }, fmtNum(split.team1Threshold, 0)),
-        el("td", { class: "num" }, fmtNum(split.team2Threshold, 0)),
+        aCell,
+        bCell,
         el("td", {}, useBtn),
       ]));
     }

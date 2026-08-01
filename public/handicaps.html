@@ -71,6 +71,11 @@
   tbody.innerHTML = "";
   for (const { p, record } of rows) {
     const isNew = record.games === 0;
+    const winPctCell = el("td", { class: "num" }, fmtPct(record.winPct));
+    if (record.winPct != null) {
+      winPctCell.style.color = gradientColor(record.winPct);
+      winPctCell.style.fontWeight = "700";
+    }
     tbody.appendChild(el("tr", {}, [
       el("td", {}, [
         el("div", { class: "player-name" }, displayName(p) + (isNew ? " " : "")),
@@ -78,7 +83,7 @@
       ]),
       el("td", { class: "num" }, isNew ? el("span", { class: "badge new" }, "new") : fmtNum(p.publishedHC)),
       el("td", { class: "num" }, fmtRecord(record)),
-      el("td", { class: "num" }, fmtPct(record.winPct)),
+      winPctCell,
     ]));
   }
 
