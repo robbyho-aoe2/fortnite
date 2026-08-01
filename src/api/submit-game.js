@@ -75,6 +75,17 @@ async function handleSubmitGame(request, env) {
     return jsonResponse({ error: "Body must be valid JSON" }, 400);
   }
 
+  try {
+    return await processSubmission(payload, env);
+  } catch (err) {
+    // Surface a real JSON error instead of letting Cloudflare's generic HTML
+    // crash page reach the client (which shows up client-side as a cryptic
+    // "Unexpected token '<'" JSON-parse failure).
+    return jsonResponse({ error: `Server error: ${err.message}` }, 500);
+  }
+}
+
+async function processSubmission(payload, env) {
   const [configFile, playersFile, gamesFile] = await Promise.all([
     getFile(env, CONFIG_PATH),
     getFile(env, PLAYERS_PATH),

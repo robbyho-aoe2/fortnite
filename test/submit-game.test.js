@@ -110,5 +110,25 @@ assert.deepStrictEqual(
 
 console.log("Rounds-played scaling checks passed.");
 
+console.log("\n--- crashes return a JSON error, not an uncaught exception ---");
+
+// Simulate a broken GITHUB_TOKEN (or any GitHub API failure): getFile()
+// throws. The handler must catch it and return JSON, not let it propagate
+// (which is what produced the "Unexpected token '<'" client-side error —
+// Cloudflare's default HTML crash page instead of a real response).
+const brokenEnv = { ...env, GITHUB_TOKEN: "invalid" };
+global.fetch = async () => ({ ok: false, status: 401, text: async () => "Bad credentials" });
+
+const crashRequest = new Request("http://localhost/api/submit-game", {
+  method: "POST",
+  body: JSON.stringify({ date: "2026-08-03", team1: ["robby"], team1Score: 5, team2: ["doug"] }),
+});
+const crashResponse = await handleSubmitGame(crashRequest, brokenEnv);
+const crashResponseBody = await crashResponse.json();
+
+assert.strictEqual(crashResponse.status, 500, "a thrown error should surface as a 500, not crash the Worker");
+assert.ok(crashResponseBody.error, "the error response should include a message");
+console.log("Crash-handling check passed:", crashResponseBody.error);
+
 global.fetch = originalFetch;
 console.log("\nEnd-to-end pipeline test passed.");
