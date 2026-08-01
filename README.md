@@ -25,6 +25,15 @@ this repo (which needs a GitHub write credential) runs in the visitor's own brow
     - `github.js` — thin GitHub Contents API client used to read/write the JSON data files
     - `repo-config.js` — the repo-write token (see below) plus owner/repo/branch
 - **`test/`** — solver + pipeline tests (`npm test`), including an end-to-end test of the submission flow with a mocked GitHub API.
+- **`scripts/`** — manual one-off maintenance tools, run locally with `node scripts/<name>.js` (they use
+  the same `repo-config.js` token as the site). Not part of the deployed site or any automated flow.
+  - `recompute.js` — re-solves handicaps against the current log and commits the result without
+    adding/changing a game. Useful after a solver bug fix: the fix is correct going forward, but
+    whatever's already committed in `players.json` still reflects the old computation until something
+    triggers a fresh solve.
+  - `set-hc-anchor.js` — directly overwrites published handicaps with a given set of values (e.g. the
+    group's own real numbers from their full-history system, when this site's ~546-game seed history
+    has drifted from them). A reference for how to do this again, not something meant to run routinely.
 
 ## Architecture & the public-token trade-off
 
@@ -112,16 +121,33 @@ Hitting "Submit Game" calls `submitGame()` in `lib/submit-game.js`, which runs i
    about a minute or two. GitHub stays the single source of truth for all data; there's no separate
    database, and no server sits between your submission and the commit.
 
-## Season history vs. live 2026
+**Correcting or removing a submission**: the "Your Recent Submissions" section lists anything you've
+logged in the last 24 hours with **Edit** and **Delete** buttons (`editGame()` / `deleteGame()` in
+`lib/submit-game.js`). Edit reuses the same team-builder form pre-filled with that game's data and
+replaces it in place (same id, fully re-graded, full re-solve) rather than appending a duplicate.
+Delete removes it and re-solves as if it never happened. Both are locked out once 24 hours have
+passed — the id itself (`game-<timestamp>`) is what the window is measured against, so no separate
+field tracks it. Legacy migrated games (`legacy-*` ids) were never eligible in the first place.
 
-2023–2025 are frozen season-end archives (`players[].seasonArchive`), migrated from the old spreadsheets
-where only year-end win/loss totals survive (per-game detail for those years lives in ~90 old monthly
-tabs that weren't migrated — not worth the complexity since the season-end numbers are what matters).
+## Season history, live 2026, and why they use different data sources
 
-2026 is **not** a static snapshot — `history.html` and `handicaps.html` compute it live by filtering
-`games.json` to the current year, so it updates automatically as games are submitted. The full
-per-game log (545 games, 2025-07 through the migration date) came from the "AI HCs" spreadsheet's
-`log` tab, which is what the live solver runs against.
+2023–2025 are frozen season-end archives (`players[].seasonArchive`), migrated from the old
+spreadsheets' whole-number year-end rollups.
+
+**2026 works the same way, and that's deliberate.** `seasonArchive["2026"]` holds the same kind of
+whole-number rollup (from the "FTN 2026 stats" sheet) as a **fixed baseline**, frozen as of migration.
+`record2026()` in `app.js` takes that baseline and adds *only* genuinely new site submissions on top of
+it (games whose id starts with `game-`, not the migrated `legacy-*` rows) — so 2026 updates live as
+games are submitted, without ever re-deriving or re-litigating anything that came before.
+
+This is **not** computed from the 545-game per-game log in `games.json` (which came from the "AI HCs"
+spreadsheet's `log` tab, migrated 2025-07 through the migration date). That log exists for exactly one
+purpose: seed data for the handicap solver, which tolerates imprecision fine since it's fitting a curve,
+not keeping score. Early on, the win/loss/tie *record* was mistakenly derived from that same log
+(via the solver's own grading, replaying old games against ever-changing current handicaps) — which
+produced numbers that didn't match the group's actual season stats and drifted further every time
+someone submitted a game. Keep these two uses of the log separate: the solver may keep using all of
+`games.json` including legacy rows; the displayed *record* never should.
 
 ## Statistics & Moose Score
 

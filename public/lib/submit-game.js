@@ -200,4 +200,23 @@ async function editGame(gameId, payload, config = repoConfig) {
   return { game, breakeven, players: updatedPlayers };
 }
 
-export { submitGame, editGame, validate, isEditable, getSubmittedAt, EDIT_WINDOW_MS };
+// Removes a game entirely (rather than replacing it) and re-solves. Same
+// 24-hour window as editGame — deleting an old game would retroactively
+// rewrite handicap history further than the group wants to reopen.
+async function deleteGame(gameId, config = repoConfig) {
+  if (!isEditable(gameId)) {
+    throw new Error("This game is no longer editable (the 24-hour edit window has passed).");
+  }
+
+  const { raceConfig, players, games, playersFile, gamesFile } = await loadCurrentState(config);
+  if (!games.some((g) => g.id === gameId)) {
+    throw new Error(`Game ${gameId} not found — it may have already been edited by someone else.`);
+  }
+
+  const updatedGames = games.filter((g) => g.id !== gameId);
+  const updatedPlayers = await resolveAndCommit(updatedGames, players, raceConfig, config, gamesFile, playersFile, `${gameId} (deleted)`);
+
+  return { deletedId: gameId, players: updatedPlayers };
+}
+
+export { submitGame, editGame, deleteGame, validate, isEditable, getSubmittedAt, EDIT_WINDOW_MS };

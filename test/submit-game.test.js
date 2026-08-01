@@ -142,6 +142,33 @@ await assert.rejects(
 
 console.log("editGame() checks passed.");
 
+console.log("\n--- deleteGame() ---");
+
+const { deleteGame } = await import("../public/lib/submit-game.js");
+
+const gamesBeforeDelete = JSON.parse(mockFiles["public/data/games.json"]);
+const deleteResult = await deleteGame(shortGameResult.game.id, testRepoConfig);
+
+assert.strictEqual(deleteResult.deletedId, shortGameResult.game.id, "result should report which game was deleted");
+
+const gamesAfterDelete = JSON.parse(mockFiles["public/data/games.json"]);
+assert.strictEqual(gamesAfterDelete.length, gamesBeforeDelete.length - 1, "the game count should drop by exactly one");
+assert.ok(!gamesAfterDelete.some((g) => g.id === shortGameResult.game.id), "the deleted game should no longer be in the log");
+
+await assert.rejects(
+  () => deleteGame("game-1", testRepoConfig),
+  /no longer editable/,
+  "deleting an old id should be rejected"
+);
+
+await assert.rejects(
+  () => deleteGame(shortGameResult.game.id, testRepoConfig),
+  /not found/,
+  "deleting an already-deleted id should be rejected"
+);
+
+console.log("deleteGame() checks passed.");
+
 console.log("\n--- GitHub API failures throw a real error ---");
 
 // Simulate a broken GITHUB_TOKEN (or any GitHub API failure): getFile()

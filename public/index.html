@@ -96,7 +96,7 @@
   </div>
 
   <h1>Your Recent Submissions</h1>
-  <p class="sub">Submissions can be corrected (players, score, date) for 24 hours after they're logged.</p>
+  <p class="sub">Submissions can be corrected or deleted for 24 hours after they're logged.</p>
   <div class="card">
     <div class="table-scroll">
       <table id="recent-submissions-table">
@@ -106,6 +106,7 @@
             <th>Team 1</th>
             <th>Team 2</th>
             <th class="num">Score</th>
+            <th></th>
             <th></th>
           </tr>
         </thead>
@@ -117,7 +118,7 @@
 
 <script src="app.js"></script>
 <script type="module">
-import { submitGame, editGame, isEditable } from "./lib/submit-game.js";
+import { submitGame, editGame, deleteGame, isEditable } from "./lib/submit-game.js";
 
 (async function () {
   const { players, games, config } = await loadData();
@@ -131,8 +132,7 @@ import { submitGame, editGame, isEditable } from "./lib/submit-game.js";
 
   // Most-active players first, so the people who actually play regularly
   // aren't buried below one-off/inactive names.
-  const games2026 = gamesInYear(games, 2026);
-  const gamesPlayed2026 = Object.fromEntries(roster.map((p) => [p.key, liveRecord(games2026, p.key, byKey, config.raceScale).games]));
+  const gamesPlayed2026 = Object.fromEntries(roster.map((p) => [p.key, record2026(p, games).games]));
   const sortedRoster = [...roster].sort((a, b) => gamesPlayed2026[b.key] - gamesPlayed2026[a.key]);
 
   // These three barely play — keep them out of the way by default, but one
@@ -291,7 +291,7 @@ import { submitGame, editGame, isEditable } from "./lib/submit-game.js";
     recentBody.innerHTML = "";
     const editable = games.filter((g) => isEditable(g.id)).sort((a, b) => (a.id < b.id ? 1 : -1));
     if (editable.length === 0) {
-      recentBody.appendChild(el("tr", {}, [el("td", { colspan: "5", class: "empty" }, "No submissions in the last 24 hours.")]));
+      recentBody.appendChild(el("tr", {}, [el("td", { colspan: "6", class: "empty" }, "No submissions in the last 24 hours.")]));
       return;
     }
     for (const g of editable) {
@@ -299,16 +299,36 @@ import { submitGame, editGame, isEditable } from "./lib/submit-game.js";
       editBtn.style.padding = "6px 12px";
       editBtn.style.fontSize = "0.85rem";
       editBtn.addEventListener("click", () => startEdit(g));
+
+      const deleteBtn = el("button", { type: "button", class: "link-button" }, "Delete");
+      deleteBtn.style.color = "var(--loss)";
+      deleteBtn.addEventListener("click", () => confirmDelete(g));
+
       recentBody.appendChild(el("tr", {}, [
         el("td", {}, g.date),
         el("td", {}, g.team1.map((k) => displayName(byKey[k])).join(", ")),
         el("td", {}, g.team2.map((k) => displayName(byKey[k])).join(", ")),
         el("td", { class: "num" }, fmtNum(g.rawTeam1Score ?? g.team1Score, 0)),
         el("td", {}, editBtn),
+        el("td", {}, deleteBtn),
       ]));
     }
   }
   renderRecentSubmissions();
+
+  async function confirmDelete(game) {
+    const label = `${game.date}: ${game.team1.map((k) => displayName(byKey[k])).join(", ")} vs ${game.team2.map((k) => displayName(byKey[k])).join(", ")}`;
+    if (!confirm(`Delete this game?\n\n${label}\n\nThis can't be undone.`)) return;
+
+    messageEl.innerHTML = "";
+    try {
+      await deleteGame(game.id);
+      messageEl.appendChild(el("div", { class: "msg success" }, "Deleted. Reloading…"));
+      setTimeout(() => window.location.reload(), 1000);
+    } catch (err) {
+      messageEl.appendChild(el("div", { class: "msg error" }, err.message));
+    }
+  }
 
   function startEdit(game) {
     editingGameId = game.id;

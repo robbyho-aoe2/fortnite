@@ -61,36 +61,25 @@ function gamesInYear(games, year) {
   return games.filter((g) => g.date.startsWith(String(year)));
 }
 
-// Kept in sync with gradeMatch in lib/solver.js — duplicated for the same
-// reason as the Moose formula above. Grading uses the raw fractional
-// breakeven (not the rounded display version) and calls anything within
-// `tieZone` wins of it a tie, since you can't score a partial win and a game
-// that close could have gone either way. A game's *stored* winningTeam field
-// reflects whatever grading logic existed when it was submitted (older
-// migrated games predate the tie-zone entirely), so display and record
-// stats always re-derive the result fresh from current handicaps instead of
-// trusting that field, for consistency with what the solver itself does.
-function deriveWinningTeam(game, byKey, raceScale) {
-  const hc1 = game.team1.reduce((sum, k) => sum + (byKey[k]?.publishedHC || 0), 0);
-  const hc2 = game.team2.reduce((sum, k) => sum + (byKey[k]?.publishedHC || 0), 0);
-  const rawTeam1Threshold = (hc1 - hc2) + raceScale.half;
-  const margin = game.team1Score - rawTeam1Threshold;
-  if (Math.abs(margin) < (raceScale.tieZone ?? 1)) return 0;
-  return margin > 0 ? 1 : 2;
-}
-
-// Live win/loss/tie record computed directly from the game log for a given
-// slice of games (e.g. all of 2026 so far). This is what makes the current
-// season "update" automatically as new games are submitted.
-function liveRecord(games, playerKey, byKey, raceScale) {
-  let w = 0, l = 0, t = 0;
+// The 2026 record is NOT derived from the migrated per-game log at all — that
+// log ("AI HCs" -> log tab, 545 rows) is only ever used as training data for
+// the handicap solver, which tolerates imprecision fine. The group's actual
+// 2026 win/loss/tie record of truth is the whole-number rollup migrated into
+// `seasonArchive["2026"]` (the "FTN 2026 stats" sheet). That baseline is
+// frozen as of the migration; going forward, only genuinely new site
+// submissions (id starts with "game-", not the legacy "legacy-*" rows) get
+// tallied on top of it. This is what makes 2026 "update" as new games are
+// submitted, without re-litigating or recomputing anything that came before.
+function record2026(player, games) {
+  const baseline = player.seasonArchive?.["2026"] || { games: 0, w: 0, l: 0, t: 0 };
+  let w = baseline.w || 0, l = baseline.l || 0, t = baseline.t || 0;
   for (const g of games) {
-    const onTeam1 = g.team1.includes(playerKey);
-    const onTeam2 = g.team2.includes(playerKey);
+    if (!g.id.startsWith("game-")) continue;
+    const onTeam1 = g.team1.includes(player.key);
+    const onTeam2 = g.team2.includes(player.key);
     if (!onTeam1 && !onTeam2) continue;
-    const winningTeam = deriveWinningTeam(g, byKey, raceScale);
-    if (winningTeam === 0) t++;
-    else if ((winningTeam === 1 && onTeam1) || (winningTeam === 2 && onTeam2)) w++;
+    if (g.winningTeam === 0) t++;
+    else if ((g.winningTeam === 1 && onTeam1) || (g.winningTeam === 2 && onTeam2)) w++;
     else l++;
   }
   const total = w + l + t;
