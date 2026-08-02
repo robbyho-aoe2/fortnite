@@ -169,5 +169,24 @@
       "lp": -1.7,
       "kman": 5
     }
+  },
+  {
+    "gameId": "manual HC update",
+    "publishedHC": {
+      "robby": 6.42,
+      "matt": 3.15,
+      "mn": 3.79,
+      "doug": 2.07,
+      "kyle": 4.47,
+      "jim": 5.13,
+      "bello": 3.7,
+      "chris": 3.85,
+      "collin": 10.72,
+      "sean": 7.38,
+      "vinny": 5.15,
+      "j2": 5.04,
+      "lp": -1.7,
+      "kman": 5
+    }
   }
 ]
