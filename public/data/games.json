@@ -8300,21 +8300,5 @@
     "rawTeam1Score": 3,
     "roundsPlayed": 15,
     "winningTeam": 2
-  },
-  {
-    "id": "game-1785638535526",
-    "date": "2026-08-02",
-    "team1": [
-      "robby",
-      "doug"
-    ],
-    "team2": [
-      "kyle",
-      "j2"
-    ],
-    "team1Score": 4,
-    "rawTeam1Score": 3,
-    "roundsPlayed": 15,
-    "winningTeam": 2
   }
 ]
