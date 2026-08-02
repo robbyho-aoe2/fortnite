@@ -123,7 +123,10 @@ import { submitGame, editGame, deleteGame, isEditable } from "./lib/submit-game.
 (async function () {
   const { players, games, config } = await loadData();
   const byKey = playerByKey(players);
-  const roster = players.filter((p) => p.active && !p.pending && p.key !== "lp");
+  // kman is pending (not officially in the group yet) but still gets to
+  // play, so he stays selectable here - just tucked into "Expand to all
+  // players" by default (HIDDEN_BY_DEFAULT below), not on stats pages.
+  const roster = players.filter((p) => p.active && p.key !== "lp");
 
   document.getElementById("date").valueAsDate = new Date();
 
