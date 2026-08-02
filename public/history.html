@@ -59,13 +59,13 @@
     let rows;
     if (activeYear === "2026") {
       rows = players
-        .filter((p) => p.active)
+        .filter((p) => p.active && !p.pending)
         .map((p) => ({ p, record: record2026(p, games) }))
         .filter(({ record }) => record.games > 0)
         .sort((a, b) => (b.record.winPct ?? 0) - (a.record.winPct ?? 0));
     } else {
       rows = players
-        .filter((p) => p.seasonArchive && p.seasonArchive[activeYear])
+        .filter((p) => !p.pending && p.seasonArchive && p.seasonArchive[activeYear])
         .map((p) => {
           const a = p.seasonArchive[activeYear];
           return { p, record: { games: a.games, w: a.w, l: a.l, t: a.t, winPct: a.winPct } };
@@ -85,7 +85,7 @@
         winPctCell.style.fontWeight = "700";
       }
       tableBody.appendChild(el("tr", {}, [
-        el("td", { class: "player-name" }, displayName(p)),
+        el("td", {}, playerPill(p)),
         el("td", { class: "num" }, fmtNum(record.games, 0)),
         el("td", { class: "num win" }, fmtNum(record.w, record.w % 1 === 0 ? 0 : 2)),
         el("td", { class: "num loss" }, fmtNum(record.l, record.l % 1 === 0 ? 0 : 2)),

@@ -123,7 +123,7 @@ import { submitGame, editGame, deleteGame, isEditable } from "./lib/submit-game.
 (async function () {
   const { players, games, config } = await loadData();
   const byKey = playerByKey(players);
-  const roster = players.filter((p) => p.active && p.key !== "lp");
+  const roster = players.filter((p) => p.active && !p.pending && p.key !== "lp");
 
   document.getElementById("date").valueAsDate = new Date();
 
@@ -141,7 +141,7 @@ import { submitGame, editGame, deleteGame, isEditable } from "./lib/submit-game.
 
   for (const p of sortedRoster) {
     const checkbox = el("input", { type: "checkbox", value: p.key });
-    const label = el("label", {}, [checkbox, document.createTextNode(" " + displayName(p))]);
+    const label = el("label", {}, [checkbox, playerPill(p)]);
     label.classList.add("checkbox-item");
     if (HIDDEN_BY_DEFAULT.has(p.key)) label.classList.add("pool-extra");
     poolGrid.appendChild(label);
@@ -172,8 +172,8 @@ import { submitGame, editGame, deleteGame, isEditable } from "./lib/submit-game.
     const splits = generateBalancedSplits(pool, byKey, config.raceScale).slice(0, 10);
     wrap.style.display = "block";
     for (const split of splits) {
-      const teamAText = split.teamA.map((k) => displayName(byKey[k])).join(", ") + (split.lpTeam === 1 ? " + LP" : "");
-      const teamBText = split.teamB.map((k) => displayName(byKey[k])).join(", ") + (split.lpTeam === 2 ? " + LP" : "");
+      const teamAKeys = split.lpTeam === 1 ? [...split.teamA, "lp"] : split.teamA;
+      const teamBKeys = split.lpTeam === 2 ? [...split.teamB, "lp"] : split.teamB;
       const useBtn = el("button", { type: "button", class: "primary" }, "Use this split");
       useBtn.style.padding = "6px 12px";
       useBtn.style.fontSize = "0.85rem";
@@ -186,8 +186,8 @@ import { submitGame, editGame, deleteGame, isEditable } from "./lib/submit-game.
       aCell.style.fontWeight = "700";
       bCell.style.fontWeight = "700";
       tbody.appendChild(el("tr", {}, [
-        el("td", {}, teamAText),
-        el("td", {}, teamBText),
+        el("td", {}, playerPillGroup(teamAKeys, byKey)),
+        el("td", {}, playerPillGroup(teamBKeys, byKey)),
         aCell,
         bCell,
         el("td", {}, useBtn),
@@ -206,7 +206,7 @@ import { submitGame, editGame, deleteGame, isEditable } from "./lib/submit-game.
   function buildGrid(gridEl, teamName) {
     for (const p of roster) {
       const checkbox = el("input", { type: "checkbox", value: p.key, name: teamName });
-      const label = el("label", {}, [checkbox, document.createTextNode(" " + displayName(p))]);
+      const label = el("label", {}, [checkbox, playerPill(p)]);
       label.classList.add("checkbox-item");
       gridEl.appendChild(label);
     }
@@ -306,8 +306,8 @@ import { submitGame, editGame, deleteGame, isEditable } from "./lib/submit-game.
 
       recentBody.appendChild(el("tr", {}, [
         el("td", {}, g.date),
-        el("td", {}, g.team1.map((k) => displayName(byKey[k])).join(", ")),
-        el("td", {}, g.team2.map((k) => displayName(byKey[k])).join(", ")),
+        el("td", {}, playerPillGroup(g.team1, byKey)),
+        el("td", {}, playerPillGroup(g.team2, byKey)),
         el("td", { class: "num" }, fmtScore(g.team1Score)),
         el("td", {}, editBtn),
         el("td", {}, deleteBtn),

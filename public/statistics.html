@@ -18,7 +18,7 @@
 
 <div class="wrap">
   <h1>Statistics — 2026</h1>
-  <p class="sub">Career-average box score stats for the season.</p>
+  <p class="sub">Career-average box score stats for the season. Click a column header to sort by it.</p>
 
   <div class="year-tabs" id="stat-tabs">
     <button data-view="averages" class="active">Averages</button>
@@ -44,78 +44,93 @@
   const tableEl = document.getElementById("stats-table");
   let view = "averages";
 
-  const rows = Object.entries(stats.players).map(([key, s]) => ({
-    key,
-    player: byKey[key],
-    s,
-  }));
+  const rows = Object.entries(stats.players)
+    .filter(([key]) => !byKey[key]?.pending)
+    .map(([key, s]) => ({ key, player: byKey[key], s }));
 
-  function renderAverages() {
-    tableEl.querySelector("thead").innerHTML = "";
-    tableEl.querySelector("thead").appendChild(el("tr", {}, [
-      el("th", {}, "Player"),
-      el("th", { class: "num" }, "Games"),
-      el("th", { class: "num" }, "Avg Elims"),
-      el("th", { class: "num" }, "Avg Dmg"),
-      el("th", { class: "num" }, "Avg Elim'd"),
-      el("th", { class: "num" }, "Avg Dmg Taken"),
-      el("th", { class: "num" }, "Avg Time"),
-      el("th", { class: "num" }, "K/D"),
-    ]));
+  // Each column knows how to sort (getValue) and how to render its own
+  // cell, so clicking a header can re-sort without duplicating formatting
+  // logic. `numeric: false` sorts alphabetically and defaults to ascending;
+  // numeric columns default to descending (biggest first) on first click.
+  const columns = {
+    averages: [
+      { label: "Player", numeric: false, getValue: (r) => displayName(r.player), renderCell: (r) => playerPill(r.player) },
+      { label: "Games", getValue: (r) => r.s.games ?? 0, renderCell: (r) => fmtNum(r.s.games, 0) },
+      { label: "Avg Elims", getValue: (r) => r.s.avgElims ?? 0, renderCell: (r) => fmtNum(r.s.avgElims) },
+      { label: "Avg Dmg", getValue: (r) => r.s.avgDamageDealt ?? 0, renderCell: (r) => fmtNum(r.s.avgDamageDealt, 0) },
+      { label: "Avg Elim'd", getValue: (r) => r.s.avgEliminated ?? 0, renderCell: (r) => fmtNum(r.s.avgEliminated) },
+      { label: "Avg Dmg Taken", getValue: (r) => r.s.avgDamageTaken ?? 0, renderCell: (r) => fmtNum(r.s.avgDamageTaken, 0) },
+      { label: "Avg Time", getValue: (r) => r.s.avgTimeAliveSeconds ?? 0, renderCell: (r) => fmtTime(r.s.avgTimeAliveSeconds) },
+      {
+        label: "K/D",
+        getValue: (r) => r.s.kd ?? 0,
+        renderCell: (r, td) => {
+          td.textContent = fmtNum(r.s.kd);
+          td.style.color = gradientColor((r.s.kd ?? 0) / 2);
+          td.style.fontWeight = "700";
+        },
+      },
+    ],
+    max: [
+      { label: "Player", numeric: false, getValue: (r) => displayName(r.player), renderCell: (r) => playerPill(r.player) },
+      { label: "Max Elims", getValue: (r) => r.s.max?.elims ?? 0, renderCell: (r) => fmtNum(r.s.max?.elims, 0) },
+      { label: "Max Dmg", getValue: (r) => r.s.max?.damageDealt ?? 0, renderCell: (r) => fmtNum(r.s.max?.damageDealt, 0) },
+      { label: "Max Elim'd", getValue: (r) => r.s.max?.eliminated ?? 0, renderCell: (r) => fmtNum(r.s.max?.eliminated, 0) },
+      { label: "Max Dmg Taken", getValue: (r) => r.s.max?.damageTaken ?? 0, renderCell: (r) => fmtNum(r.s.max?.damageTaken, 0) },
+      { label: "Max Time", getValue: (r) => r.s.max?.timeAliveSeconds ?? 0, renderCell: (r) => fmtTime(r.s.max?.timeAliveSeconds) },
+    ],
+  };
 
-    const sorted = [...rows].sort((a, b) => b.s.kd - a.s.kd);
-    const tbody = tableEl.querySelector("tbody");
-    tbody.innerHTML = "";
-    for (const { player, s } of sorted) {
-      const kdCell = el("td", { class: "num" }, fmtNum(s.kd));
-      kdCell.style.color = gradientColor(s.kd / 2);
-      kdCell.style.fontWeight = "700";
-      tbody.appendChild(el("tr", {}, [
-        el("td", { class: "player-name" }, displayName(player)),
-        el("td", { class: "num" }, fmtNum(s.games, 0)),
-        el("td", { class: "num" }, fmtNum(s.avgElims)),
-        el("td", { class: "num" }, fmtNum(s.avgDamageDealt, 0)),
-        el("td", { class: "num" }, fmtNum(s.avgEliminated)),
-        el("td", { class: "num" }, fmtNum(s.avgDamageTaken, 0)),
-        el("td", { class: "num" }, fmtTime(s.avgTimeAliveSeconds)),
-        kdCell,
-      ]));
-    }
-  }
-
-  function renderMax() {
-    tableEl.querySelector("thead").innerHTML = "";
-    tableEl.querySelector("thead").appendChild(el("tr", {}, [
-      el("th", {}, "Player"),
-      el("th", { class: "num" }, "Max Elims"),
-      el("th", { class: "num" }, "Max Dmg"),
-      el("th", { class: "num" }, "Max Elim'd"),
-      el("th", { class: "num" }, "Max Dmg Taken"),
-      el("th", { class: "num" }, "Max Time"),
-    ]));
-
-    const sorted = [...rows].sort((a, b) => (b.s.max?.elims || 0) - (a.s.max?.elims || 0));
-    const tbody = tableEl.querySelector("tbody");
-    tbody.innerHTML = "";
-    for (const { player, s } of sorted) {
-      const m = s.max || {};
-      tbody.appendChild(el("tr", {}, [
-        el("td", { class: "player-name" }, displayName(player)),
-        el("td", { class: "num" }, fmtNum(m.elims, 0)),
-        el("td", { class: "num" }, fmtNum(m.damageDealt, 0)),
-        el("td", { class: "num" }, fmtNum(m.eliminated, 0)),
-        el("td", { class: "num" }, fmtNum(m.damageTaken, 0)),
-        el("td", { class: "num" }, fmtTime(m.timeAliveSeconds)),
-      ]));
-    }
-  }
+  // Default sort: K/D descending for Averages, Max Elims descending for Max.
+  const sortState = { averages: { index: 7, dir: -1 }, max: { index: 1, dir: -1 } };
 
   function render() {
     for (const btn of document.querySelectorAll("#stat-tabs button")) {
       btn.classList.toggle("active", btn.dataset.view === view);
     }
-    if (view === "averages") renderAverages();
-    else renderMax();
+
+    const cols = columns[view];
+    const state = sortState[view];
+
+    const thead = tableEl.querySelector("thead");
+    thead.innerHTML = "";
+    thead.appendChild(el("tr", {}, cols.map((col, i) => {
+      const arrow = state.index === i ? (state.dir === 1 ? " ▲" : " ▼") : "";
+      const th = el("th", { class: col.numeric === false ? "sortable" : "num sortable" }, col.label + arrow);
+      th.addEventListener("click", () => {
+        if (state.index === i) {
+          state.dir *= -1;
+        } else {
+          state.index = i;
+          state.dir = col.numeric === false ? 1 : -1;
+        }
+        render();
+      });
+      return th;
+    })));
+
+    const sortCol = cols[state.index];
+    const sorted = [...rows].sort((a, b) => {
+      const va = sortCol.getValue(a);
+      const vb = sortCol.getValue(b);
+      if (sortCol.numeric === false) return state.dir * String(va).localeCompare(String(vb));
+      return state.dir * (va - vb);
+    });
+
+    const tbody = tableEl.querySelector("tbody");
+    tbody.innerHTML = "";
+    if (sorted.length === 0) {
+      tbody.appendChild(el("tr", {}, [el("td", { colspan: String(cols.length), class: "empty" }, "No stats yet.")]));
+      return;
+    }
+    for (const row of sorted) {
+      tbody.appendChild(el("tr", {}, cols.map((col) => {
+        const td = el("td", { class: col.numeric === false ? "" : "num" });
+        const content = col.renderCell(row, td);
+        if (content != null) td.appendChild(typeof content === "string" ? document.createTextNode(content) : content);
+        return td;
+      })));
+    }
   }
 
   for (const btn of document.querySelectorAll("#stat-tabs button")) {

@@ -84,7 +84,7 @@
 
     tbody.appendChild(el("tr", {}, [
       el("td", {}, [
-        el("div", { class: "player-name" }, displayName(p)),
+        el("div", {}, playerPill(p)),
         el("div", { class: "player-sub" }, secondaryName(p)),
       ]),
       el("td", { class: "num" }, fmtNum(p.publishedHC)),
@@ -100,8 +100,6 @@
     recentBody.appendChild(el("tr", {}, [el("td", { colspan: "5", class: "empty" }, "No games logged yet in 2026.")]));
   }
   for (const g of recent) {
-    const t1Names = g.team1.map((k) => displayName(byKey[k])).join(", ");
-    const t2Names = g.team2.map((k) => displayName(byKey[k])).join(", ");
     const winningTeam = g.winningTeam;
     const resultClass = winningTeam === 0 ? "tie" : "win";
     // Margin is against the pre-game "wins needed to tie" target, not a flat
@@ -119,8 +117,8 @@
     const resultText = winningTeam === 0 ? "Tie" : winningTeam === 1 ? `Team 1 beat Team 2 by ${margin}` : `Team 2 beat Team 1 by ${margin}`;
     recentBody.appendChild(el("tr", {}, [
       el("td", {}, g.date),
-      el("td", { class: winningTeam === 1 ? "win" : "" }, t1Names),
-      el("td", { class: winningTeam === 2 ? "win" : "" }, t2Names),
+      el("td", { class: winningTeam === 1 ? "cell-win" : "" }, playerPillGroup(g.team1, byKey)),
+      el("td", { class: winningTeam === 2 ? "cell-win" : "" }, playerPillGroup(g.team2, byKey)),
       el("td", { class: "num" }, fmtScore(g.team1Score)),
       el("td", { class: resultClass }, resultText),
     ]));

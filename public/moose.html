@@ -49,12 +49,14 @@
   const stats = await loadStats();
   const byKey = playerByKey(players);
 
-  const rows = Object.entries(stats.players).map(([key, s]) => {
-    const player = byKey[key];
-    const moose = computeMooseScore(s, config.moose);
-    const hc = player?.publishedHC ?? null;
-    return { key, player, moose, hc, delta: hc == null ? null : moose - hc };
-  });
+  const rows = Object.entries(stats.players)
+    .filter(([key]) => !byKey[key]?.pending)
+    .map(([key, s]) => {
+      const player = byKey[key];
+      const moose = computeMooseScore(s, config.moose);
+      const hc = player?.publishedHC ?? null;
+      return { key, player, moose, hc, delta: hc == null ? null : moose - hc };
+    });
   rows.sort((a, b) => b.moose - a.moose);
 
   const tbody = document.querySelector("#moose-table tbody");
@@ -63,7 +65,7 @@
     const deltaClass = delta == null ? "" : delta > 0 ? "win" : delta < 0 ? "loss" : "";
     const deltaText = delta == null ? "—" : (delta > 0 ? "+" : "") + fmtNum(delta);
     tbody.appendChild(el("tr", {}, [
-      el("td", { class: "player-name" }, displayName(player)),
+      el("td", {}, playerPill(player)),
       el("td", { class: "num" }, fmtNum(moose)),
       el("td", { class: "num" }, fmtNum(hc)),
       el("td", { class: `num ${deltaClass}` }, deltaText),

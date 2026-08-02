@@ -75,6 +75,56 @@ function secondaryName(player) {
   return player.alias && player.alias !== primary ? player.alias : "";
 }
 
+// One fixed, maximally-distinct color per player (a categorical palette
+// picked for visual distinction, not a hash), so the same player always
+// reads as the same color everywhere their name shows up as a pill.
+const PLAYER_COLORS = {
+  robby: "#e6194b",
+  matt: "#3cb44b",
+  mn: "#4363d8",
+  doug: "#f58231",
+  kyle: "#911eb4",
+  jim: "#46f0f0",
+  bello: "#f032e6",
+  chris: "#bcf60c",
+  collin: "#008080",
+  sean: "#9a6324",
+  vinny: "#800000",
+  j2: "#808000",
+  lp: "#808080",
+  kman: "#000075",
+};
+
+function playerColor(key) {
+  return PLAYER_COLORS[key] || "#495057";
+}
+
+// Black or white text, whichever contrasts better against the pill's
+// background - computed from perceived brightness (YIQ) rather than
+// hardcoded per color, so it stays correct if a color above ever changes.
+function pillTextColor(hex) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  return yiq >= 128 ? "#000000" : "#ffffff";
+}
+
+// A colored pill badge for a single player.
+function playerPill(player) {
+  if (!player) return el("span", { class: "player-pill" }, "Unknown");
+  const bg = playerColor(player.key);
+  const pill = el("span", { class: "player-pill" }, displayName(player));
+  pill.style.background = bg;
+  pill.style.color = pillTextColor(bg);
+  return pill;
+}
+
+// A wrapped row of pills for a team/group, replacing plain ", "-joined text.
+function playerPillGroup(keys, byKey) {
+  return el("span", { class: "pill-group" }, keys.map((k) => playerPill(byKey[k])));
+}
+
 function gamesInYear(games, year) {
   return games.filter((g) => g.date.startsWith(String(year)));
 }
