@@ -4,9 +4,9 @@
     "alias": "not A theist",
     "realName": "Robby",
     "active": true,
-    "baseHC": 5.4000073589316955,
-    "strFac": -0.023497686536787094,
-    "publishedHC": 5.38,
+    "baseHC": 6.18,
+    "strFac": 0,
+    "publishedHC": 6.18,
     "seasonArchive": {
       "2023": {
         "games": 133,
@@ -43,9 +43,9 @@
     "alias": "MightyMosaic389",
     "realName": "Matt",
     "active": true,
-    "baseHC": 3.0036587852474304,
-    "strFac": -0.26911825695203406,
-    "publishedHC": 2.73,
+    "baseHC": 3.07,
+    "strFac": 0,
+    "publishedHC": 3.07,
     "seasonArchive": {
       "2023": {
         "games": 160,
@@ -82,9 +82,9 @@
     "alias": "garfunkelmoose",
     "realName": "Mike Nolen",
     "active": true,
-    "baseHC": 3.759437557782872,
-    "strFac": 0.7229493767642398,
-    "publishedHC": 4.48,
+    "baseHC": 4.07,
+    "strFac": 0,
+    "publishedHC": 4.07,
     "seasonArchive": {
       "2023": {
         "games": 206,
@@ -121,9 +121,9 @@
     "alias": "TrdFrgsn20",
     "realName": "Doug",
     "active": true,
-    "baseHC": 2.143559163879303,
-    "strFac": 0.04831304473267345,
-    "publishedHC": 2.19,
+    "baseHC": 1.54,
+    "strFac": 0,
+    "publishedHC": 1.54,
     "seasonArchive": {
       "2023": {
         "games": 202,
@@ -160,9 +160,9 @@
     "alias": "StrtldMoose",
     "realName": "Kyle",
     "active": true,
-    "baseHC": 4.045171749224188,
-    "strFac": -0.10899765239187437,
-    "publishedHC": 3.94,
+    "baseHC": 4.67,
+    "strFac": 0,
+    "publishedHC": 4.67,
     "seasonArchive": {
       "2023": {
         "games": 137,
@@ -199,9 +199,9 @@
     "alias": "MootCapybara942",
     "realName": "Jim",
     "active": true,
-    "baseHC": 4.4088242914264955,
-    "strFac": -0.16036181157453822,
-    "publishedHC": 4.25,
+    "baseHC": 4.79,
+    "strFac": 0,
+    "publishedHC": 4.79,
     "seasonArchive": {
       "2023": {
         "games": 102,
@@ -238,9 +238,9 @@
     "alias": "LetMeCook2055",
     "realName": "Bello",
     "active": true,
-    "baseHC": 3.624234834285415,
-    "strFac": 0.069477030106953,
-    "publishedHC": 3.69,
+    "baseHC": 3.67,
+    "strFac": 0,
+    "publishedHC": 3.67,
     "seasonArchive": {
       "2023": {
         "games": 179,
@@ -277,9 +277,9 @@
     "alias": "WildingSumo4",
     "realName": "Chris",
     "active": true,
-    "baseHC": 5.072416695502494,
-    "strFac": 0.04242640687119291,
-    "publishedHC": 5.11,
+    "baseHC": 3.85,
+    "strFac": 0,
+    "publishedHC": 3.85,
     "seasonArchive": {
       "2024": {
         "games": 7,
@@ -309,9 +309,9 @@
     "alias": "WeekndCRB",
     "realName": "Collin",
     "active": true,
-    "baseHC": 9.75,
-    "strFac": 0.028788754982925324,
-    "publishedHC": 9.78,
+    "baseHC": 10.73,
+    "strFac": 0,
+    "publishedHC": 10.73,
     "seasonArchive": {
       "2025": {
         "games": 332,
@@ -334,9 +334,9 @@
     "alias": "Seaningo",
     "realName": "Sean",
     "active": true,
-    "baseHC": 7.00014393307553,
-    "strFac": -0.75,
-    "publishedHC": 6.25,
+    "baseHC": 7.45,
+    "strFac": 0,
+    "publishedHC": 7.45,
     "seasonArchive": {
       "2025": {
         "games": 371,
@@ -359,9 +359,9 @@
     "alias": "Vinyyy_13",
     "realName": "Vinny",
     "active": true,
-    "baseHC": 4.889157241181224,
-    "strFac": -0.027808952726581848,
-    "publishedHC": 4.86,
+    "baseHC": 5.01,
+    "strFac": 0,
+    "publishedHC": 5.01,
     "seasonArchive": {
       "2025": {
         "games": 201,
@@ -384,9 +384,9 @@
     "alias": "JimmyBwell",
     "realName": "Jimmy",
     "active": true,
-    "baseHC": 5.90278796469844,
-    "strFac": -0.0696176195782745,
-    "publishedHC": 5.83,
+    "baseHC": 5.33,
+    "strFac": 0,
+    "publishedHC": 5.33,
     "seasonArchive": {
       "2025": {
         "games": 447,
@@ -409,9 +409,9 @@
     "alias": null,
     "realName": "LP",
     "active": false,
-    "baseHC": -2.5,
-    "strFac": 1.2243416490252568,
-    "publishedHC": -1.28,
+    "baseHC": -1.7,
+    "strFac": 0,
+    "publishedHC": -1.7,
     "seasonArchive": {}
   },
   {
