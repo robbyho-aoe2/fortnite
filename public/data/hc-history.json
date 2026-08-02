@@ -321,5 +321,24 @@
       "lp": -1.28,
       "kman": 5
     }
+  },
+  {
+    "gameId": "recompute-after-strength-factor-fix",
+    "publishedHC": {
+      "robby": 5.39,
+      "matt": 2.99,
+      "mn": 4.1,
+      "doug": 0.95,
+      "kyle": 4.8,
+      "jim": 4.41,
+      "bello": 3.49,
+      "chris": 3.99,
+      "collin": 10.6,
+      "sean": 7.44,
+      "vinny": 4.7,
+      "j2": 4.5,
+      "lp": -1.75,
+      "kman": 5
+    }
   }
 ]
