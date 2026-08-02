@@ -94,6 +94,14 @@ tbody tr:hover { background: var(--surface-2); }
 .table-scroll { overflow-x: auto; }
 
 td.num, th.num { text-align: center; font-variant-numeric: tabular-nums; }
+
+/* Numeric columns (handicap/strength/delta/wins-to-tie/etc.) only need
+   room for a couple digits, unlike name/team columns - tightening just
+   these on narrow screens cuts down how much a table has to be scrolled
+   sideways to see everything. */
+@media (max-width: 600px) {
+  td.num, th.num { padding-left: 4px; padding-right: 4px; }
+}
 .win { color: var(--win); font-weight: 600; }
 .loss { color: var(--loss); font-weight: 600; }
 .tie { color: var(--tie); font-weight: 600; }
