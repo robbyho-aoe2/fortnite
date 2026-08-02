@@ -283,5 +283,43 @@
       "lp": -1.28,
       "kman": 5
     }
+  },
+  {
+    "gameId": "recompute-after-strength-factor-fix",
+    "publishedHC": {
+      "robby": 5.39,
+      "matt": 2.48,
+      "mn": 4.06,
+      "doug": 0.95,
+      "kyle": 5.1,
+      "jim": 4.55,
+      "bello": 3.3,
+      "chris": 3.99,
+      "collin": 10.6,
+      "sean": 7.44,
+      "vinny": 4.7,
+      "j2": 4.5,
+      "lp": -1.75,
+      "kman": 5
+    }
+  },
+  {
+    "gameId": "game-1785641653269",
+    "publishedHC": {
+      "robby": 5.65,
+      "matt": 2.66,
+      "mn": 4.06,
+      "doug": 1.79,
+      "kyle": 4.17,
+      "jim": 4.12,
+      "bello": 3.25,
+      "chris": 4.81,
+      "collin": 10.01,
+      "sean": 5.76,
+      "vinny": 4.6,
+      "j2": 5.89,
+      "lp": -1.28,
+      "kman": 5
+    }
   }
 ]
