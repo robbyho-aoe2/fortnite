@@ -181,13 +181,16 @@ import { submitGame, editGame, deleteGame, isEditable } from "./lib/submit-game.
       useBtn.style.padding = "6px 12px";
       useBtn.style.fontSize = "0.85rem";
       useBtn.addEventListener("click", () => applySplit(split.teamA, split.teamB));
-      const color = fairnessColor(split.fairness, config.raceScale);
+      const bg = fairnessColor(split.team1Threshold, config.raceScale);
+      const textColor = pillTextColor(bg);
       const aCell = el("td", { class: "num" }, fmtNum(split.team1Threshold, 0));
       const bCell = el("td", { class: "num" }, fmtNum(split.team2Threshold, 0));
-      aCell.style.color = color;
-      bCell.style.color = color;
-      aCell.style.fontWeight = "700";
-      bCell.style.fontWeight = "700";
+      for (const cell of [aCell, bCell]) {
+        cell.style.background = bg;
+        cell.style.color = textColor;
+        cell.style.fontWeight = "700";
+        cell.style.borderRadius = "6px";
+      }
       tbody.appendChild(el("tr", {}, [
         el("td", {}, playerPillGroup(teamAKeys, byKey)),
         el("td", {}, playerPillGroup(teamBKeys, byKey)),

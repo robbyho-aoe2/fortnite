@@ -207,11 +207,16 @@ function gradientColor(t) {
   return `rgb(${mix(0)}, ${mix(1)}, ${mix(2)})`;
 }
 
-// Auto Teams fairness -> gradient position. fairness is |threshold - half|,
-// 0 at a dead-even 10-10 split (green) up to `half` at the most lopsided
-// possible split like 20-0 (red).
-function fairnessColor(fairness, raceScale) {
-  return gradientColor(1 - Math.min(fairness / raceScale.half, 1));
+// Stepped (not smooth) fairness banding for a split's rounded wins-needed-
+// to-tie target - dead even (10-10) is green, one or two off (9-11/8-12) is
+// yellow, three or four off (7-13/6-14) is orange, five or more (5-15+) is
+// red. Returns a background color; pair with pillTextColor() for the label.
+function fairnessColor(team1Threshold, raceScale) {
+  const gap = Math.abs(team1Threshold - raceScale.half);
+  if (gap === 0) return "#16a34a";
+  if (gap <= 2) return "#eab308";
+  if (gap <= 4) return "#f97316";
+  return "#dc2626";
 }
 
 // LP isn't a real player — it's a fixed-handicap filler automatically added
@@ -230,7 +235,11 @@ function computeMatchup(team1Keys, team2Keys, byKey, raceScale) {
   const hc1 = team1.reduce((sum, k) => sum + (byKey[k]?.publishedHC || 0), 0);
   const hc2 = team2.reduce((sum, k) => sum + (byKey[k]?.publishedHC || 0), 0);
   const { team1Threshold, team2Threshold } = roundedBreakeven(hc1, hc2, raceScale);
-  return { team1Effective: team1, team2Effective: team2, lpTeam, team1Threshold, team2Threshold };
+  // Raw, unrounded handicap gap - used for ranking splits so ties in the
+  // *rounded* display target (many splits can all round to "10-10") don't
+  // mask which one is actually closest to even.
+  const rawGap = Math.abs(hc1 - hc2);
+  return { team1Effective: team1, team2Effective: team2, lpTeam, team1Threshold, team2Threshold, rawGap };
 }
 
 // Kept in sync with computeBreakeven in lib/solver.js (see the comment there
@@ -282,7 +291,9 @@ function generateBalancedSplits(pool, byKey, raceScale) {
       lpTeam: matchup.lpTeam,
       team1Threshold: matchup.team1Threshold,
       team2Threshold: matchup.team2Threshold,
-      fairness: Math.abs(matchup.team1Threshold - raceScale.half),
+      // Raw gap for ranking (see computeMatchup) - many splits round to the
+      // same displayed target, but aren't equally close to even underneath.
+      fairness: matchup.rawGap,
     });
   }
   splits.sort((a, b) => a.fairness - b.fairness);
