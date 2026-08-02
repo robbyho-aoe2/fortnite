@@ -4,9 +4,14 @@
 // handicaps across the full history, and commits both updated files straight
 // back to GitHub. That commit triggers a normal GitHub Pages redeploy.
 
-import { getFile, putFile } from "./github.js";
-import { recomputeAllHandicaps, computeBreakeven, gradeMatch, teamHCTotal } from "./solver.js";
-import { repoConfig } from "./repo-config.js";
+// The "?v=1" on these imports is a cache-buster (see the same pattern on
+// the <script>/<link> tags in every HTML page) - bump it whenever this
+// file or one of these three changes, so a browser that cached an older
+// module doesn't keep running stale solver/grading logic against fresh
+// game submissions after a fix ships.
+import { getFile, putFile } from "./github.js?v=1";
+import { recomputeAllHandicaps, computeBreakeven, gradeMatch, teamHCTotal } from "./solver.js?v=1";
+import { repoConfig } from "./repo-config.js?v=1";
 
 const GAMES_PATH = "public/data/games.json";
 const PLAYERS_PATH = "public/data/players.json";
