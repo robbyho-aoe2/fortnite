@@ -58,7 +58,7 @@
 <script src="app.js"></script>
 <script>
 (async function () {
-  const { players, games } = await loadData();
+  const { players, games, config } = await loadData();
   const history = await loadHcHistory();
   const byKey = playerByKey(players);
   const games2026 = gamesInYear(games, 2026);
@@ -104,7 +104,10 @@
     const t2Names = g.team2.map((k) => displayName(byKey[k])).join(", ");
     const winningTeam = g.winningTeam;
     const resultClass = winningTeam === 0 ? "tie" : "win";
-    const resultText = winningTeam === 0 ? "Tie" : winningTeam === 1 ? "Team 1 won" : "Team 2 won";
+    // Every round has exactly one winning team, so team2's score is always
+    // (race total - team1's), win-count margin is symmetric either way.
+    const margin = fmtScore(Math.abs(g.team1Score - (config.raceScale.total - g.team1Score)));
+    const resultText = winningTeam === 0 ? "Tie" : winningTeam === 1 ? `Team 1 won by ${margin}` : `Team 2 won by ${margin}`;
     recentBody.appendChild(el("tr", {}, [
       el("td", {}, g.date),
       el("td", { class: winningTeam === 1 ? "win" : "" }, t1Names),
