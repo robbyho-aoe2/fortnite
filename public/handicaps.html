@@ -109,7 +109,7 @@
       el("td", {}, g.date),
       el("td", { class: winningTeam === 1 ? "win" : "" }, t1Names),
       el("td", { class: winningTeam === 2 ? "win" : "" }, t2Names),
-      el("td", { class: "num" }, String(g.team1Score)),
+      el("td", { class: "num" }, fmtScore(g.team1Score)),
       el("td", { class: resultClass }, resultText),
     ]));
   }

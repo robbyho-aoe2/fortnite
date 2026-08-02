@@ -113,6 +113,16 @@ function fmtNum(n, digits = 2) {
   return n == null || Number.isNaN(n) ? "—" : Number(n).toFixed(digits);
 }
 
+// Scores are whole numbers most of the time (a clean win count) but can be
+// fractional after rounds-played scaling (e.g. 3 wins at round 15 of 20 ->
+// 4.0, but 3 wins at round 14 of 20 -> 4.29). Show up to 2 decimals, but
+// drop them when the value is actually a whole number instead of always
+// padding to "4.00".
+function fmtScore(n) {
+  if (n == null || Number.isNaN(n)) return "—";
+  return String(Math.round(n * 100) / 100);
+}
+
 function fmtRecord(r) {
   if (!r || r.games === 0) return "—";
   return `${r.w}-${r.l}-${r.t}`;

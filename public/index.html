@@ -308,7 +308,7 @@ import { submitGame, editGame, deleteGame, isEditable } from "./lib/submit-game.
         el("td", {}, g.date),
         el("td", {}, g.team1.map((k) => displayName(byKey[k])).join(", ")),
         el("td", {}, g.team2.map((k) => displayName(byKey[k])).join(", ")),
-        el("td", { class: "num" }, String(g.rawTeam1Score ?? g.team1Score)),
+        el("td", { class: "num" }, fmtScore(g.team1Score)),
         el("td", {}, editBtn),
         el("td", {}, deleteBtn),
       ]));
