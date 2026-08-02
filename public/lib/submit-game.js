@@ -118,6 +118,12 @@ function buildGameRecord(payload, players, raceConfig, id) {
       rawTeam1Score: payload.team1Score,
       roundsPlayed,
       winningTeam,
+      // The pre-game "wins needed to tie" target, frozen at submission time
+      // (same handicaps used to grade winningTeam) - lets the Recent Games
+      // display show "beat team 2 by 1" (actual score vs this target)
+      // instead of a bare round-count margin, without having to re-derive
+      // it from possibly-since-changed current handicaps.
+      team1Threshold,
     },
     breakeven: { team1Threshold, team2Threshold },
   };

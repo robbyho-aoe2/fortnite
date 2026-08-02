@@ -10,10 +10,10 @@
 <nav class="top">
   <span class="brand">🎮 Fortnite Stat Tracker</span>
   <a href="index.html">Submit a Game</a>
-  <a href="statistics.html">Statistics</a>
   <a href="handicaps.html" class="active">Handicaps</a>
-  <a href="moose.html">Moose Score</a>
   <a href="history.html">Season History</a>
+  <a href="statistics.html">Statistics</a>
+  <a href="moose.html">Moose Score</a>
 </nav>
 
 <div class="wrap">
@@ -104,10 +104,19 @@
     const t2Names = g.team2.map((k) => displayName(byKey[k])).join(", ");
     const winningTeam = g.winningTeam;
     const resultClass = winningTeam === 0 ? "tie" : "win";
-    // Every round has exactly one winning team, so team2's score is always
-    // (race total - team1's), win-count margin is symmetric either way.
-    const margin = fmtScore(Math.abs(g.team1Score - (config.raceScale.total - g.team1Score)));
-    const resultText = winningTeam === 0 ? "Tie" : winningTeam === 1 ? `Team 1 won by ${margin}` : `Team 2 won by ${margin}`;
+    // Margin is against the pre-game "wins needed to tie" target, not a flat
+    // round-count split - beating a target of 6 by scoring 7 reads as "won
+    // by 1", not "won by 8" (7 vs the other team's implied 13). New games
+    // store the target frozen from submission time; legacy games (migrated
+    // before this field existed) fall back to a live estimate from current
+    // handicaps, since their original target was never recorded.
+    const team1Threshold = g.team1Threshold ?? roundedBreakeven(
+      g.team1.reduce((sum, k) => sum + (byKey[k]?.publishedHC || 0), 0),
+      g.team2.reduce((sum, k) => sum + (byKey[k]?.publishedHC || 0), 0),
+      config.raceScale
+    ).team1Threshold;
+    const margin = fmtScore(Math.abs(g.team1Score - team1Threshold));
+    const resultText = winningTeam === 0 ? "Tie" : winningTeam === 1 ? `Team 1 beat Team 2 by ${margin}` : `Team 2 beat Team 1 by ${margin}`;
     recentBody.appendChild(el("tr", {}, [
       el("td", {}, g.date),
       el("td", { class: winningTeam === 1 ? "win" : "" }, t1Names),
