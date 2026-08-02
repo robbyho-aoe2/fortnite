@@ -8233,7 +8233,8 @@
       "bello"
     ],
     "team1Score": 10,
-    "winningTeam": 2
+    "winningTeam": 0,
+    "team1Threshold": 10
   },
   {
     "id": "legacy-20",
@@ -8300,7 +8301,8 @@
     "team1Score": 9,
     "rawTeam1Score": 9,
     "roundsPlayed": 20,
-    "winningTeam": 2
+    "winningTeam": 1,
+    "team1Threshold": 6
   },
   {
     "id": "game-1785636659287",
