@@ -304,11 +304,12 @@ import { submitGame, editGame, deleteGame, isEditable } from "./lib/submit-game.
       deleteBtn.style.color = "var(--loss)";
       deleteBtn.addEventListener("click", () => confirmDelete(g));
 
+      const scoreText = `${fmtScore(g.team1Score)}-${fmtScore(config.raceScale.total - g.team1Score)}`;
       recentBody.appendChild(el("tr", {}, [
         el("td", {}, g.date),
         el("td", {}, playerPillGroup(g.team1, byKey)),
         el("td", {}, playerPillGroup(g.team2, byKey)),
-        el("td", { class: "num" }, fmtScore(g.team1Score)),
+        el("td", { class: "num" }, scoreText),
         el("td", {}, editBtn),
         el("td", {}, deleteBtn),
       ]));

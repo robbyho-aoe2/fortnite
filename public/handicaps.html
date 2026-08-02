@@ -27,7 +27,7 @@
           <tr>
             <th>Player</th>
             <th class="num">Handicap</th>
-            <th class="num">Δ Last Game</th>
+            <th class="num">Current Strength</th>
             <th class="num">Δ Last 20</th>
           </tr>
         </thead>
@@ -72,14 +72,13 @@
   const tbody = document.querySelector("#leaderboard tbody");
   tbody.innerHTML = "";
   for (const p of rows) {
-    const sinceLastGame = hcChangeOver(history, p.key, 1);
     const last20 = hcChangeOver(history, p.key, 20);
 
-    const lastGameCell = el("td", { class: "num" }, fmtDelta(sinceLastGame));
+    const strFacCell = el("td", { class: "num" }, fmtDelta(p.strFac));
     const last20Cell = el("td", { class: "num" }, fmtDelta(last20));
-    const lastGameColor = deltaColor(sinceLastGame, 1);
+    const strFacColor = deltaColor(p.strFac, 1);
     const last20Color = deltaColor(last20, 3);
-    if (lastGameColor) { lastGameCell.style.color = lastGameColor; lastGameCell.style.fontWeight = "700"; }
+    if (strFacColor) { strFacCell.style.color = strFacColor; strFacCell.style.fontWeight = "700"; }
     if (last20Color) { last20Cell.style.color = last20Color; last20Cell.style.fontWeight = "700"; }
 
     tbody.appendChild(el("tr", {}, [
@@ -88,7 +87,7 @@
         el("div", { class: "player-sub" }, secondaryName(p)),
       ]),
       el("td", { class: "num" }, fmtNum(p.publishedHC)),
-      lastGameCell,
+      strFacCell,
       last20Cell,
     ]));
   }
