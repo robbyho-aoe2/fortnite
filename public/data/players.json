@@ -5,8 +5,8 @@
     "realName": "Robby",
     "active": true,
     "baseHC": 5.446576385935883,
-    "strFac": 0.455412928690851,
-    "publishedHC": 5.9,
+    "strFac": 0.2015253565160805,
+    "publishedHC": 5.65,
     "seasonArchive": {
       "2023": {
         "games": 133,
@@ -83,8 +83,8 @@
     "realName": "Mike Nolen",
     "active": true,
     "baseHC": 3.5627469188769445,
-    "strFac": 0.49327036935966256,
-    "publishedHC": 4.06,
+    "strFac": 0.7862132305199921,
+    "publishedHC": 4.35,
     "seasonArchive": {
       "2023": {
         "games": 206,
@@ -122,8 +122,8 @@
     "realName": "Doug",
     "active": true,
     "baseHC": 2.0126957657196267,
-    "strFac": 0.0690812482509418,
-    "publishedHC": 2.08,
+    "strFac": -0.22575759772475748,
+    "publishedHC": 1.79,
     "seasonArchive": {
       "2023": {
         "games": 202,
@@ -161,8 +161,8 @@
     "realName": "Kyle",
     "active": true,
     "baseHC": 4.283496450275289,
-    "strFac": -0.15779913580586366,
-    "publishedHC": 4.13,
+    "strFac": -0.11233054976906079,
+    "publishedHC": 4.17,
     "seasonArchive": {
       "2023": {
         "games": 137,
@@ -360,8 +360,8 @@
     "realName": "Vinny",
     "active": true,
     "baseHC": 4.851867640467986,
-    "strFac": -0.5573548758760958,
-    "publishedHC": 4.29,
+    "strFac": -0.25563907644256756,
+    "publishedHC": 4.6,
     "seasonArchive": {
       "2025": {
         "games": 201,
