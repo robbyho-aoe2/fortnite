@@ -18,7 +18,7 @@
 
 <div class="wrap">
   <h1>Season History</h1>
-  <p class="sub">2023–2025 are closed-season archives. 2026 is computed live from the current game log and updates as new games are submitted.</p>
+  <p class="sub">2023–2025 are closed-season archives. 2026 is computed live from the current game log and updates as new games are submitted. Last 25 shows each player's most recent 25 games, regardless of year.</p>
 
   <div class="year-tabs" id="year-tabs"></div>
 
@@ -45,7 +45,7 @@
 <script>
 (async function () {
   const { players, games } = await loadData();
-  const years = ["2023", "2024", "2025", "2026"];
+  const years = ["2023", "2024", "2025", "2026", "last25"];
   let activeYear = "2026";
 
   const tabsEl = document.getElementById("year-tabs");
@@ -57,7 +57,13 @@
     }
 
     let rows;
-    if (activeYear === "2026") {
+    if (activeYear === "last25") {
+      rows = players
+        .filter((p) => p.active && !p.pending)
+        .map((p) => ({ p, record: lastNGamesRecord(p, games, 25) }))
+        .filter(({ record }) => record.games > 0)
+        .sort((a, b) => (b.record.winPct ?? 0) - (a.record.winPct ?? 0));
+    } else if (activeYear === "2026") {
       rows = players
         .filter((p) => p.active && !p.pending)
         .map((p) => ({ p, record: record2026(p, games) }))
@@ -96,7 +102,8 @@
   }
 
   for (const year of years) {
-    const btn = el("button", { "data-year": year }, year);
+    const label = year === "last25" ? "Last 25" : year;
+    const btn = el("button", { "data-year": year }, label);
     btn.addEventListener("click", () => { activeYear = year; render(); });
     tabsEl.appendChild(btn);
   }

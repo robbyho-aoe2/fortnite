@@ -155,6 +155,26 @@ function record2026(player, games) {
   return { games: total, w, l, t, winPct };
 }
 
+// A player's most recent N games (any date/year), most-recent-first - same
+// window the strength factor's short window uses. `games` must be sorted
+// oldest -> newest (the log's normal order), so the most recent entry is
+// the last element.
+function lastNGamesRecord(player, games, n) {
+  let w = 0, l = 0, t = 0, count = 0;
+  for (let i = games.length - 1; i >= 0 && count < n; i--) {
+    const g = games[i];
+    const onTeam1 = g.team1.includes(player.key);
+    const onTeam2 = g.team2.includes(player.key);
+    if (!onTeam1 && !onTeam2) continue;
+    count++;
+    if (g.winningTeam === 0) t++;
+    else if ((g.winningTeam === 1 && onTeam1) || (g.winningTeam === 2 && onTeam2)) w++;
+    else l++;
+  }
+  const winPct = count > 0 ? (w + 0.5 * t) / count : null;
+  return { games: count, w, l, t, winPct };
+}
+
 function fmtPct(p) {
   return p == null ? "—" : `${(p * 100).toFixed(1)}%`;
 }
