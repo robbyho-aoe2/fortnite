@@ -114,11 +114,12 @@
     ).team1Threshold;
     const margin = fmtScore(Math.abs(g.team1Score - team1Threshold));
     const resultText = winningTeam === 0 ? "Tie" : winningTeam === 1 ? `Team 1 beat Team 2 by ${margin}` : `Team 2 beat Team 1 by ${margin}`;
+    const scoreText = `${fmtScore(g.team1Score)}-${fmtScore(config.raceScale.total - g.team1Score)}`;
     recentBody.appendChild(el("tr", {}, [
       el("td", {}, g.date),
       el("td", { class: winningTeam === 1 ? "cell-win" : "" }, playerPillGroup(g.team1, byKey)),
       el("td", { class: winningTeam === 2 ? "cell-win" : "" }, playerPillGroup(g.team2, byKey)),
-      el("td", { class: "num" }, fmtScore(g.team1Score)),
+      el("td", { class: "num" }, scoreText),
       el("td", { class: resultClass }, resultText),
     ]));
   }
