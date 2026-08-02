@@ -32,15 +32,16 @@ function teamHCTotal(team, hcByPlayer) {
 }
 
 // Actual grading (as opposed to the rounded pre-game display above) uses the
-// raw fractional breakeven directly, and calls it a tie whenever the actual
-// score lands within `tieZone` wins of that line — you can't score a partial
-// win, so a game that close could just as easily have gone the other way.
+// raw fractional breakeven directly and compares it to the score exactly —
+// no tie zone. Verified against all 545 real games in the source sheet: the
+// real formula (F>W / F=W / F<W) never once produced a tie, including games
+// decided by a margin under 0.01 wins, so an exact score match is genuinely
+// the only case that counts as a tie.
 // 1 = team1 win, 2 = team2 win, 0 = tie
 function gradeMatch(team1HCTotal, team2HCTotal, team1Score, raceScale) {
   const rawTeam1Threshold = (team1HCTotal - team2HCTotal) + raceScale.half;
-  const margin = team1Score - rawTeam1Threshold;
-  if (Math.abs(margin) < (raceScale.tieZone ?? 1)) return 0;
-  return margin > 0 ? 1 : 2;
+  if (team1Score === rawTeam1Threshold) return 0;
+  return team1Score > rawTeam1Threshold ? 1 : 2;
 }
 
 function gradeGame(game, hcByPlayer, raceScale) {

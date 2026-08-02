@@ -35,16 +35,19 @@ assert.strictEqual(higherTeam1.team1Threshold, 15, "team1 (higher HC) should rou
 assert.strictEqual(higherTeam1.team2Threshold, 5, "team2 (lower HC) should round down on an exact half");
 console.log("tie-break rounding ok");
 
-console.log("\n--- Sanity: gradeMatch uses the raw fractional breakeven + tie zone, not the rounded display one ---");
-// Real historical example: robby+doug (score 10) vs kyle+bello. Raw breakeven
-// worked out to ~10.71, a margin of ~0.71 — within the tie zone, so this
-// should grade as a tie even though the rounded *display* breakeven (11)
-// would suggest a clean loss.
-assert.strictEqual(gradeMatch(8.607213078, 7.892270524, 10, config.raceScale), 0, "a game within one win of the raw breakeven should grade as a tie");
-// A clear win/loss (margin >= 1) should still resolve normally.
-assert.strictEqual(gradeMatch(5, 5, 12, config.raceScale), 1, "a margin past the tie zone should be a clear win");
-assert.strictEqual(gradeMatch(5, 5, 8, config.raceScale), 2, "a margin past the tie zone should be a clear loss");
-console.log("gradeMatch tie-zone ok");
+console.log("\n--- Sanity: gradeMatch uses the raw fractional breakeven, exact comparison, no tie zone ---");
+// Real historical example from the source sheet (2026-07-24, row 21):
+// robby+doug (score 10) vs kyle+bello. Raw breakeven worked out to ~10.71 —
+// team1 fell short of it, so the sheet's own Y column graded this "Team 2",
+// not a tie. Checked all 545 real games: the sheet's exact-equality rule
+// (F>W / F=W / F<W) never once produced a tie, including games decided by
+// margins under 0.01 wins, so gradeMatch must match that exactly rather than
+// rounding anything close to a tie.
+assert.strictEqual(gradeMatch(8.607213078, 7.892270524, 10, config.raceScale), 2, "team1 falling short of the raw breakeven is a clean loss, not a tie");
+assert.strictEqual(gradeMatch(5, 5, 11, config.raceScale), 1, "team1 clearing the raw breakeven is a clean win");
+assert.strictEqual(gradeMatch(5, 5, 9, config.raceScale), 2, "team1 falling short of the raw breakeven is a clean loss");
+assert.strictEqual(gradeMatch(5, 5, 10, config.raceScale), 0, "landing exactly on the raw breakeven is the only tie case");
+console.log("gradeMatch exact-comparison ok");
 
 console.log("\n--- Re-running solver from current snapshot (should stay close) ---");
 const start = Date.now();
