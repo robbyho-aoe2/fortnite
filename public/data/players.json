@@ -4,9 +4,9 @@
     "alias": "not A theist",
     "realName": "Robby",
     "active": true,
-    "baseHC": 5.4000073589316955,
-    "strFac": -0.023497686536787094,
-    "publishedHC": 5.38,
+    "baseHC": 5.896737113673726,
+    "strFac": 0.010433775759815272,
+    "publishedHC": 5.91,
     "seasonArchive": {
       "2023": {
         "games": 133,
@@ -43,9 +43,9 @@
     "alias": "MightyMosaic389",
     "realName": "Matt",
     "active": true,
-    "baseHC": 3.0036587852474304,
-    "strFac": -0.26911825695203406,
-    "publishedHC": 2.73,
+    "baseHC": 3.0924393899291274,
+    "strFac": -0.3762419651635556,
+    "publishedHC": 2.72,
     "seasonArchive": {
       "2023": {
         "games": 160,
@@ -82,9 +82,9 @@
     "alias": "garfunkelmoose",
     "realName": "Mike Nolen",
     "active": true,
-    "baseHC": 3.759437557782872,
-    "strFac": 0.7229493767642398,
-    "publishedHC": 4.48,
+    "baseHC": 4.028088490036962,
+    "strFac": -0.06908124825094106,
+    "publishedHC": 3.96,
     "seasonArchive": {
       "2023": {
         "games": 206,
@@ -121,9 +121,9 @@
     "alias": "TrdFrgsn20",
     "realName": "Doug",
     "active": true,
-    "baseHC": 2.143559163879303,
-    "strFac": 0.04831304473267345,
-    "publishedHC": 2.19,
+    "baseHC": 1.75414042110807,
+    "strFac": 0.7075735931288071,
+    "publishedHC": 2.46,
     "seasonArchive": {
       "2023": {
         "games": 202,
@@ -160,9 +160,9 @@
     "alias": "StrtldMoose",
     "realName": "Kyle",
     "active": true,
-    "baseHC": 4.045171749224188,
-    "strFac": -0.10899765239187437,
-    "publishedHC": 3.94,
+    "baseHC": 4.486608514293435,
+    "strFac": -0.38344464339955187,
+    "publishedHC": 4.1,
     "seasonArchive": {
       "2023": {
         "games": 137,
@@ -199,8 +199,8 @@
     "alias": "MootCapybara942",
     "realName": "Jim",
     "active": true,
-    "baseHC": 4.4088242914264955,
-    "strFac": -0.16036181157453822,
+    "baseHC": 4.723533423517214,
+    "strFac": -0.470366343407836,
     "publishedHC": 4.25,
     "seasonArchive": {
       "2023": {
@@ -238,9 +238,9 @@
     "alias": "LetMeCook2055",
     "realName": "Bello",
     "active": true,
-    "baseHC": 3.624234834285415,
-    "strFac": 0.069477030106953,
-    "publishedHC": 3.69,
+    "baseHC": 3.4784858001695085,
+    "strFac": -0.13845192130474007,
+    "publishedHC": 3.34,
     "seasonArchive": {
       "2023": {
         "games": 179,
@@ -277,9 +277,9 @@
     "alias": "WildingSumo4",
     "realName": "Chris",
     "active": true,
-    "baseHC": 5.072416695502494,
-    "strFac": 0.04242640687119291,
-    "publishedHC": 5.11,
+    "baseHC": 4.083491209457778,
+    "strFac": 0.8546209891030848,
+    "publishedHC": 4.94,
     "seasonArchive": {
       "2024": {
         "games": 7,
@@ -309,9 +309,9 @@
     "alias": "WeekndCRB",
     "realName": "Collin",
     "active": true,
-    "baseHC": 9.75,
-    "strFac": 0.028788754982925324,
-    "publishedHC": 9.78,
+    "baseHC": 10.17924182478495,
+    "strFac": -0.4331488773690194,
+    "publishedHC": 9.75,
     "seasonArchive": {
       "2025": {
         "games": 332,
@@ -334,9 +334,9 @@
     "alias": "Seaningo",
     "realName": "Sean",
     "active": true,
-    "baseHC": 7.00014393307553,
-    "strFac": -0.75,
-    "publishedHC": 6.25,
+    "baseHC": 7.270688092823142,
+    "strFac": -0.7924264068711929,
+    "publishedHC": 6.48,
     "seasonArchive": {
       "2025": {
         "games": 371,
@@ -359,9 +359,9 @@
     "alias": "Vinyyy_13",
     "realName": "Vinny",
     "active": true,
-    "baseHC": 4.889157241181224,
-    "strFac": -0.027808952726581848,
-    "publishedHC": 4.86,
+    "baseHC": 5.054830828381538,
+    "strFac": -0.2816965249013526,
+    "publishedHC": 4.77,
     "seasonArchive": {
       "2025": {
         "games": 201,
@@ -384,9 +384,9 @@
     "alias": "JimmyBwell",
     "realName": "Jimmy",
     "active": true,
-    "baseHC": 5.90278796469844,
-    "strFac": -0.0696176195782745,
-    "publishedHC": 5.83,
+    "baseHC": 5.502565629657555,
+    "strFac": 0.2756583509747432,
+    "publishedHC": 5.78,
     "seasonArchive": {
       "2025": {
         "games": 447,
