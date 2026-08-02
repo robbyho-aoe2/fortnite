@@ -5,8 +5,8 @@
     "realName": "Robby",
     "active": true,
     "baseHC": 5.446576385935883,
-    "strFac": 0.2015253565160805,
-    "publishedHC": 5.65,
+    "strFac": 0.455412928690851,
+    "publishedHC": 5.9,
     "seasonArchive": {
       "2023": {
         "games": 133,
@@ -122,8 +122,8 @@
     "realName": "Doug",
     "active": true,
     "baseHC": 2.0126957657196267,
-    "strFac": -0.22575759772475748,
-    "publishedHC": 1.79,
+    "strFac": 0.0690812482509418,
+    "publishedHC": 2.08,
     "seasonArchive": {
       "2023": {
         "games": 202,
@@ -161,8 +161,8 @@
     "realName": "Kyle",
     "active": true,
     "baseHC": 4.283496450275289,
-    "strFac": -0.11233054976906079,
-    "publishedHC": 4.17,
+    "strFac": -0.15779913580586366,
+    "publishedHC": 4.13,
     "seasonArchive": {
       "2023": {
         "games": 137,
@@ -385,8 +385,8 @@
     "realName": "Jimmy",
     "active": true,
     "baseHC": 5.7272041189240674,
-    "strFac": 0.4737369939942214,
-    "publishedHC": 6.2,
+    "strFac": 0.16232085030800714,
+    "publishedHC": 5.89,
     "seasonArchive": {
       "2025": {
         "games": 447,
