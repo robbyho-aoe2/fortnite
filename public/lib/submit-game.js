@@ -92,16 +92,19 @@ function buildGameRecord(payload, players, raceConfig, id) {
 
   // If the session ended before the full 20-round reference, scale the
   // reported score up proportionally (e.g. 5-5 at round 10 of 20 grades the
-  // same as 10-10) so every game compares against the same fixed scale.
+  // same as 10-10) so every game compares against the same fixed scale. Both
+  // the reported score and rounds played can be fractional (partial-round
+  // credit), so this is plain proportional math, not integer division -
+  // rounded only for storage, not truncated.
   const roundsPlayed = payload.roundsPlayed || raceConfig.raceScale.total;
-  const scaledTeam1Score = payload.team1Score * (raceConfig.raceScale.total / roundsPlayed);
+  const scaledTeam1Score = Math.round(payload.team1Score * (raceConfig.raceScale.total / roundsPlayed) * 100) / 100;
 
   const hcByKey = Object.fromEntries(players.map((p) => [p.key, p.publishedHC || 0]));
   const t1Total = teamHCTotal(payload.team1, hcByKey);
   const t2Total = teamHCTotal(payload.team2, hcByKey);
-  // The stored record uses the same raw-fractional-threshold-plus-tie-zone
-  // grading as the solver (gradeMatch), not the rounded display breakeven —
-  // a game within one win of the target is a tie, not a coin-flip win/loss.
+  // The stored record uses the same raw-fractional-breakeven grading as the
+  // solver (gradeMatch), not the rounded display breakeven - an exact match
+  // is the only tie case, same as the original spreadsheet.
   const winningTeam = gradeMatch(t1Total, t2Total, scaledTeam1Score, raceConfig.raceScale);
   const { team1Threshold, team2Threshold } = computeBreakeven(t1Total, t2Total, raceConfig.raceScale);
 

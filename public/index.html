@@ -78,12 +78,12 @@
 
       <div class="field" id="rounds-field" style="display: none;">
         <label for="roundsPlayed">Rounds played (out of 20)</label>
-        <input type="number" id="roundsPlayed" min="1" max="20" value="20" />
+        <input type="number" id="roundsPlayed" min="1" max="20" step="any" value="20" />
       </div>
 
       <div class="field">
         <label for="team1Score">Team 1 wins <span id="rounds-hint"></span></label>
-        <input type="number" id="team1Score" min="0" step="1" required />
+        <input type="number" id="team1Score" min="0" step="any" required />
       </div>
 
       <div id="form-message"></div>
@@ -308,7 +308,7 @@ import { submitGame, editGame, deleteGame, isEditable } from "./lib/submit-game.
         el("td", {}, g.date),
         el("td", {}, g.team1.map((k) => displayName(byKey[k])).join(", ")),
         el("td", {}, g.team2.map((k) => displayName(byKey[k])).join(", ")),
-        el("td", { class: "num" }, fmtNum(g.rawTeam1Score ?? g.team1Score, 0)),
+        el("td", { class: "num" }, String(g.rawTeam1Score ?? g.team1Score)),
         el("td", {}, editBtn),
         el("td", {}, deleteBtn),
       ]));
