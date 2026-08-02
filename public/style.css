@@ -93,7 +93,7 @@ th.sortable:hover { color: var(--text); }
 tbody tr:hover { background: var(--surface-2); }
 .table-scroll { overflow-x: auto; }
 
-td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+td.num, th.num { text-align: center; font-variant-numeric: tabular-nums; }
 .win { color: var(--win); font-weight: 600; }
 .loss { color: var(--loss); font-weight: 600; }
 .tie { color: var(--tie); font-weight: 600; }
