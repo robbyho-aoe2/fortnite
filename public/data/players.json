@@ -4,9 +4,9 @@
     "alias": "not A theist",
     "realName": "Robby",
     "active": true,
-    "baseHC": 6.42,
-    "strFac": 0,
-    "publishedHC": 6.42,
+    "baseHC": 5.90766269002613,
+    "strFac": 0.010433775759815272,
+    "publishedHC": 5.92,
     "seasonArchive": {
       "2023": {
         "games": 133,
@@ -43,9 +43,9 @@
     "alias": "MightyMosaic389",
     "realName": "Matt",
     "active": true,
-    "baseHC": 3.15,
-    "strFac": 0,
-    "publishedHC": 3.15,
+    "baseHC": 3.3176857147690133,
+    "strFac": -0.5141213904356583,
+    "publishedHC": 2.8,
     "seasonArchive": {
       "2023": {
         "games": 160,
@@ -82,9 +82,9 @@
     "alias": "garfunkelmoose",
     "realName": "Mike Nolen",
     "active": true,
-    "baseHC": 3.79,
-    "strFac": 0,
-    "publishedHC": 3.79,
+    "baseHC": 3.92624243436321,
+    "strFac": 0.33385659407490476,
+    "publishedHC": 4.26,
     "seasonArchive": {
       "2023": {
         "games": 206,
@@ -121,9 +121,9 @@
     "alias": "TrdFrgsn20",
     "realName": "Doug",
     "active": true,
-    "baseHC": 2.07,
-    "strFac": 0,
-    "publishedHC": 2.07,
+    "baseHC": 1.986681871434752,
+    "strFac": -0.04847059875451254,
+    "publishedHC": 1.94,
     "seasonArchive": {
       "2023": {
         "games": 202,
@@ -160,9 +160,9 @@
     "alias": "StrtldMoose",
     "realName": "Kyle",
     "active": true,
-    "baseHC": 4.47,
-    "strFac": 0,
-    "publishedHC": 4.47,
+    "baseHC": 4.4529975801282315,
+    "strFac": 0.1848063239238294,
+    "publishedHC": 4.64,
     "seasonArchive": {
       "2023": {
         "games": 137,
@@ -199,9 +199,9 @@
     "alias": "MootCapybara942",
     "realName": "Jim",
     "active": true,
-    "baseHC": 5.13,
-    "strFac": 0,
-    "publishedHC": 5.13,
+    "baseHC": 4.776063706583249,
+    "strFac": -0.406321463312583,
+    "publishedHC": 4.37,
     "seasonArchive": {
       "2023": {
         "games": 102,
@@ -238,9 +238,9 @@
     "alias": "LetMeCook2055",
     "realName": "Bello",
     "active": true,
-    "baseHC": 3.7,
-    "strFac": 0,
-    "publishedHC": 3.7,
+    "baseHC": 3.409626923508622,
+    "strFac": 0.16759389421947857,
+    "publishedHC": 3.58,
     "seasonArchive": {
       "2023": {
         "games": 179,
@@ -277,9 +277,9 @@
     "alias": "WildingSumo4",
     "realName": "Chris",
     "active": true,
-    "baseHC": 3.85,
-    "strFac": 0,
-    "publishedHC": 3.85,
+    "baseHC": 4.230601506980721,
+    "strFac": 0.4192267677682907,
+    "publishedHC": 4.65,
     "seasonArchive": {
       "2024": {
         "games": 7,
@@ -309,9 +309,9 @@
     "alias": "WeekndCRB",
     "realName": "Collin",
     "active": true,
-    "baseHC": 10.72,
-    "strFac": 0,
-    "publishedHC": 10.72,
+    "baseHC": 10.007479411986987,
+    "strFac": -0.255121207389726,
+    "publishedHC": 9.75,
     "seasonArchive": {
       "2025": {
         "games": 332,
@@ -334,9 +334,9 @@
     "alias": "Seaningo",
     "realName": "Sean",
     "active": true,
-    "baseHC": 7.38,
-    "strFac": 0,
-    "publishedHC": 7.38,
+    "baseHC": 7.046114695907777,
+    "strFac": -0.970454076850486,
+    "publishedHC": 6.08,
     "seasonArchive": {
       "2025": {
         "games": 371,
@@ -359,9 +359,9 @@
     "alias": "Vinyyy_13",
     "realName": "Vinny",
     "active": true,
-    "baseHC": 5.15,
-    "strFac": 0,
-    "publishedHC": 5.15,
+    "baseHC": 5.267987308165715,
+    "strFac": -0.6954390740473412,
+    "publishedHC": 4.57,
     "seasonArchive": {
       "2025": {
         "games": 201,
@@ -384,9 +384,9 @@
     "alias": "JimmyBwell",
     "realName": "Jimmy",
     "active": true,
-    "baseHC": 5.04,
-    "strFac": 0,
-    "publishedHC": 5.04,
+    "baseHC": 5.433407436468831,
+    "strFac": 0.2756583509747432,
+    "publishedHC": 5.71,
     "seasonArchive": {
       "2025": {
         "games": 447,
@@ -409,9 +409,9 @@
     "alias": null,
     "realName": "LP",
     "active": false,
-    "baseHC": -1.7,
-    "strFac": 0,
-    "publishedHC": -1.7,
+    "baseHC": -2.5,
+    "strFac": 1.5,
+    "publishedHC": -1,
     "seasonArchive": {}
   },
   {
