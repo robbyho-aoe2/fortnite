@@ -85,12 +85,40 @@ function weightedWinRate(playerEntries, hcByPlayer, raceScale, tau) {
   return weightSum > 0 ? resultSum / weightSum : 0.5;
 }
 
-function simpleWinRate(playerEntries, windowSize, hcByPlayer, raceScale) {
-  const windowed = playerEntries.slice(0, windowSize);
-  if (windowed.length === 0) return { games: 0, winPct: 0.5 };
-  let sum = 0;
-  for (const entry of windowed) sum += resultForPlayer(entry, hcByPlayer, raceScale);
-  return { games: windowed.length, winPct: sum / windowed.length };
+// Strength factor represents actual current-record momentum, not a
+// hypothetical re-grade against whatever base HC the coordinate descent is
+// testing mid-solve — verified against the source sheet: its short/long
+// window win/loss/tie counts (AM:AP, AV:AY) are cached numbers, not live
+// formulas depending on the handicap column, unlike the base-HC objective's
+// own win-rate columns (which genuinely are live VLOOKUP-driven formulas).
+// Using a live re-grade here made a player's "current record" swing just
+// because *other* players' base HC moved slightly, even when that player
+// wasn't in the game that changed - confirmed directly: two players with no
+// shared game in the triggering change still showed exactly mirrored
+// swings (+1.37 / -1.37) from a single unrelated recompute.
+function storedResultForPlayer(entry) {
+  const winner = entry.game.winningTeam;
+  if (winner === 0) return 0.5;
+  return winner === entry.team ? 1 : 0;
+}
+
+// The "last 300 games in 2026" long window is, in practice, just the whole
+// 2026 season (no one has played anywhere near 300 games this year) - so
+// rather than a rolling game count, it's exactly the same running 2026
+// record used elsewhere (record2026() in app.js): a frozen season-end
+// baseline plus every genuinely new site submission on top. Duplicated here
+// for the same reason computeBreakeven/computeMatchup are duplicated
+// between this module and app.js - app.js loads as a plain script, not an
+// ES module, so it can't import from here.
+function record2026FromEntries(baseline, playerEntries) {
+  let w = baseline?.w || 0, l = baseline?.l || 0, t = baseline?.t || 0;
+  for (const entry of playerEntries) {
+    if (!entry.game.id.startsWith("game-")) continue;
+    if (entry.game.winningTeam === 0) t++;
+    else if (entry.game.winningTeam === entry.team) w++;
+    else l++;
+  }
+  return { games: w + l + t, w, l, t };
 }
 
 function hiLoSpread(rosterOrder, playerIndex, hcByPlayer, raceScale, tau, minGames) {
@@ -201,29 +229,45 @@ function multiPassSolve(initialHC, games, rosterOrder, raceScale, cfg) {
 }
 
 // Strength factor: current-record momentum on top of the solved base HC.
-function computeStrengthFactor(playerEntries, hcByPlayer, raceScale, cfg) {
-  const totalGames = playerEntries.length;
-  const rampFactor = Math.min(totalGames * cfg.rampGamesDivisor, 1);
-
-  function windowFactor(windowCfg) {
-    const { winPct } = simpleWinRate(playerEntries, windowCfg.games, hcByPlayer, raceScale);
+// Short window = last 25 real games (any year), recency-ordered. Long
+// window = the running 2026 season record (see record2026FromEntries) -
+// each window ramps in independently based on its *own* game count, not a
+// shared career total, matching MIN(games*0.05,1) being computed separately
+// per window in the source sheet (AM4 for short, AV4 for long).
+function computeStrengthFactor(playerEntries, seasonBaseline2026, cfg) {
+  function windowFactor(winSum, count, windowCfg) {
+    if (count === 0) return 0;
+    const winPct = winSum / count;
+    const rampFactor = Math.min(count * cfg.rampGamesDivisor, 1);
     const sign = winPct > 0.5 ? 1 : -1;
     const magnitude = Math.pow(Math.abs(winPct - 0.5), windowCfg.exponent) * windowCfg.scalar * rampFactor;
     return sign * Math.min(magnitude, cfg.cap);
   }
 
-  return windowFactor(cfg.shortWindow) + windowFactor(cfg.longWindow);
+  const shortWindowed = playerEntries.slice(0, cfg.shortWindow.games);
+  let shortWinSum = 0;
+  for (const entry of shortWindowed) shortWinSum += storedResultForPlayer(entry);
+  const shortFactor = windowFactor(shortWinSum, shortWindowed.length, cfg.shortWindow);
+
+  const season2026 = record2026FromEntries(seasonBaseline2026, playerEntries);
+  const longWinSum = season2026.w + 0.5 * season2026.t;
+  const longFactor = windowFactor(longWinSum, season2026.games, cfg.longWindow);
+
+  return shortFactor + longFactor;
 }
 
 // Full pipeline: solve base HCs across the whole log, then layer strength factor on top.
-function recomputeAllHandicaps(currentBaseHC, games, rosterOrder, raceScale, solverCfg, strengthCfg) {
+function recomputeAllHandicaps(players, games, rosterOrder, raceScale, solverCfg, strengthCfg) {
+  const currentBaseHC = Object.fromEntries(players.map((p) => [p.key, p.baseHC || 0]));
+  const byKey = Object.fromEntries(players.map((p) => [p.key, p]));
   const baseHC = multiPassSolve(currentBaseHC, games, rosterOrder, raceScale, solverCfg);
   const playerIndex = buildPlayerGameIndex(games, rosterOrder);
 
   const strFacByPlayer = {};
   const publishedHC = {};
   for (const key of rosterOrder) {
-    const strFac = computeStrengthFactor(playerIndex[key], baseHC, raceScale, strengthCfg);
+    const seasonBaseline2026 = byKey[key]?.seasonArchive?.["2026"];
+    const strFac = computeStrengthFactor(playerIndex[key], seasonBaseline2026, strengthCfg);
     strFacByPlayer[key] = strFac;
     publishedHC[key] = (baseHC[key] || 0) + strFac;
   }
@@ -241,6 +285,7 @@ export {
   hiLoSpread,
   singlePassSolve,
   multiPassSolve,
+  record2026FromEntries,
   computeStrengthFactor,
   recomputeAllHandicaps,
 };

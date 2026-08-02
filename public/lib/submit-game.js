@@ -129,11 +129,9 @@ function buildGameRecord(payload, players, raceConfig, id) {
 async function resolveAndCommit(updatedGames, players, raceConfig, config, gamesFile, playersFile, historyFile, history, commitId) {
   const knownKeys = players.map((p) => p.key);
   const rosterOrder = ROSTER_ORDER.filter((k) => knownKeys.includes(k));
-  const currentBaseHC = {};
-  for (const p of players) currentBaseHC[p.key] = p.baseHC || 0;
 
   const { baseHC, strFacByPlayer, publishedHC } = recomputeAllHandicaps(
-    currentBaseHC,
+    players,
     updatedGames,
     rosterOrder,
     raceConfig.raceScale,

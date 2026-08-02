@@ -33,12 +33,9 @@ const games = JSON.parse(gamesFile.content);
 const knownKeys = players.map((p) => p.key);
 const rosterOrder = ROSTER_ORDER.filter((k) => knownKeys.includes(k));
 
-const currentBaseHC = {};
-for (const p of players) currentBaseHC[p.key] = p.baseHC || 0;
-
 console.log(`Re-solving against ${games.length} games...`);
 const { baseHC, strFacByPlayer, publishedHC } = recomputeAllHandicaps(
-  currentBaseHC,
+  players,
   games,
   rosterOrder,
   config.raceScale,
@@ -54,14 +51,14 @@ const updatedPlayers = players.map((p) => {
   return { ...p, baseHC: baseHC[p.key], strFac: strFacByPlayer[p.key], publishedHC: after };
 });
 
-const COMMIT_ID = "recompute-after-tie-zone-fix";
+const COMMIT_ID = "recompute-after-strength-factor-fix";
 
 await putFile(
   repoConfig,
   PLAYERS_PATH,
   JSON.stringify(updatedPlayers, null, 2),
   playersFile.sha,
-  "Recompute handicaps after removing the fabricated tie-zone (no game added)"
+  "Recompute handicaps after fixing strength factor grading (no game added)"
 );
 
 const snapshotHC = Object.fromEntries(updatedPlayers.filter((p) => p.publishedHC != null).map((p) => [p.key, p.publishedHC]));

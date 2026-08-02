@@ -12,8 +12,6 @@ const players = JSON.parse(fs.readFileSync(path.join(dataDir, "players.json"), "
 const games = JSON.parse(fs.readFileSync(path.join(dataDir, "games.json"), "utf-8"));
 
 const rosterOrder = ["robby", "matt", "mn", "doug", "kyle", "jim", "bello", "chris", "collin", "sean", "vinny", "j2", "lp"];
-const currentBaseHC = {};
-for (const p of players) currentBaseHC[p.key] = p.baseHC || 0;
 
 console.log("--- Sanity: breakeven / grading ---");
 const bk = computeBreakeven(12.24, 14.6, config.raceScale);
@@ -58,7 +56,7 @@ console.log("\n--- Diagnostic: re-running solver from current snapshot (informat
 // day). The deterministic regression test below is what actually guards
 // against a real solver bug.
 const start = Date.now();
-const result = recomputeAllHandicaps(currentBaseHC, games, rosterOrder, config.raceScale, config.solver, config.strengthFactor);
+const result = recomputeAllHandicaps(players, games, rosterOrder, config.raceScale, config.solver, config.strengthFactor);
 console.log(`solved in ${Date.now() - start}ms`);
 
 let maxDrift = 0;
@@ -100,29 +98,53 @@ for (const teamA of combinations(syntheticPlayers, 3)) {
   seenSplits.add(key);
   splits.push({ teamA, teamB });
 }
+// Every synthetic player starts dead even (all real players at 5.0), so the
+// very first pass grades each game against a 15-15 (threshold 10) breakeven
+// - used here just to stamp a plausible, already-decided winningTeam onto
+// each game, the same way a real submission freezes one at gradeMatch time.
+// Ids are "game-*" so record2026FromEntries counts them as new-season
+// submissions, giving the long (2026-season) strength-factor window
+// something real to work with.
 const syntheticGames = [];
 let gi = 0;
 for (let rep = 0; rep < 5; rep++) {
   for (const { teamA, teamB } of splits) {
-    syntheticGames.push({ id: `synthetic-${gi}`, date: "2026-01-01", team1: teamA, team2: teamB, team1Score: 8 + (gi % 9) });
+    const team1Score = 8 + (gi % 9);
+    syntheticGames.push({
+      id: `game-synthetic-${gi}`,
+      date: "2026-01-01",
+      team1: teamA,
+      team2: teamB,
+      team1Score,
+      winningTeam: gradeMatch(15, 15, team1Score, config.raceScale),
+    });
     gi++;
   }
 }
-const syntheticInitialHC = Object.fromEntries(syntheticRoster.map((k) => [k, k === "lp" ? -2.5 : 5.0]));
-const settled = recomputeAllHandicaps(syntheticInitialHC, syntheticGames, syntheticRoster, config.raceScale, config.solver, config.strengthFactor);
+const syntheticPlayerObjs = syntheticRoster.map((k) => ({ key: k, baseHC: k === "lp" ? -2.5 : 5.0 }));
+const settled = recomputeAllHandicaps(syntheticPlayerObjs, syntheticGames, syntheticRoster, config.raceScale, config.solver, config.strengthFactor);
 
 // Sanity check baked into the same fixture: re-solving unchanged data from an
 // already-settled point should move nothing. This is exactly the property
 // the fabricated tie-zone broke (see gradeMatch above) - if that regresses,
 // this catches it directly instead of only via a live-data snapshot.
-const reSettled = recomputeAllHandicaps(settled.baseHC, syntheticGames, syntheticRoster, config.raceScale, config.solver, config.strengthFactor);
+const settledPlayerObjs = syntheticRoster.map((k) => ({ key: k, baseHC: settled.baseHC[k] }));
+const reSettled = recomputeAllHandicaps(settledPlayerObjs, syntheticGames, syntheticRoster, config.raceScale, config.solver, config.strengthFactor);
 let maxNoOpDrift = 0;
 for (const key of syntheticRoster) maxNoOpDrift = Math.max(maxNoOpDrift, Math.abs(reSettled.baseHC[key] - settled.baseHC[key]));
 console.log(`max no-op drift on unchanged synthetic data: ${maxNoOpDrift.toFixed(4)}`);
 assert.ok(maxNoOpDrift < 0.001, "re-solving unchanged data should not move any handicap");
 
-const newGame = { id: "synthetic-new", date: "2026-02-01", team1: ["p1", "p2", "p3"], team2: ["p4", "p5", "p6"], team1Score: 11 };
-const after = recomputeAllHandicaps(settled.baseHC, [...syntheticGames, newGame], syntheticRoster, config.raceScale, config.solver, config.strengthFactor);
+const newGameScore = 11;
+const newGame = {
+  id: "game-synthetic-new",
+  date: "2026-02-01",
+  team1: ["p1", "p2", "p3"],
+  team2: ["p4", "p5", "p6"],
+  team1Score: newGameScore,
+  winningTeam: gradeMatch(15, 15, newGameScore, config.raceScale),
+};
+const after = recomputeAllHandicaps(settledPlayerObjs, [...syntheticGames, newGame], syntheticRoster, config.raceScale, config.solver, config.strengthFactor);
 let maxSwing = 0;
 for (const key of syntheticRoster) {
   const swing = Math.abs(after.publishedHC[key] - settled.publishedHC[key]);
