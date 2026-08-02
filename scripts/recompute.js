@@ -15,13 +15,17 @@ import { repoConfig } from "../public/lib/repo-config.js";
 const PLAYERS_PATH = "public/data/players.json";
 const GAMES_PATH = "public/data/games.json";
 const CONFIG_PATH = "public/data/config.json";
+const HC_HISTORY_PATH = "public/data/hc-history.json";
+const MAX_HISTORY_LENGTH = 250;
 const ROSTER_ORDER = ["robby", "matt", "mn", "doug", "kyle", "jim", "bello", "chris", "collin", "sean", "vinny", "j2", "lp"];
 
-const [configFile, playersFile, gamesFile] = await Promise.all([
+const [configFile, playersFile, gamesFile, historyFile] = await Promise.all([
   getFile(repoConfig, CONFIG_PATH),
   getFile(repoConfig, PLAYERS_PATH),
   getFile(repoConfig, GAMES_PATH),
+  getFile(repoConfig, HC_HISTORY_PATH),
 ]);
+const history = JSON.parse(historyFile.content);
 
 const config = JSON.parse(configFile.content);
 const players = JSON.parse(playersFile.content);
@@ -50,12 +54,24 @@ const updatedPlayers = players.map((p) => {
   return { ...p, baseHC: baseHC[p.key], strFac: strFacByPlayer[p.key], publishedHC: after };
 });
 
+const COMMIT_ID = "recompute-after-tie-zone-fix";
+
 await putFile(
   repoConfig,
   PLAYERS_PATH,
   JSON.stringify(updatedPlayers, null, 2),
   playersFile.sha,
-  "Recompute handicaps with LP-objective-exclusion fix (no game added)"
+  "Recompute handicaps after removing the fabricated tie-zone (no game added)"
+);
+
+const snapshotHC = Object.fromEntries(updatedPlayers.filter((p) => p.publishedHC != null).map((p) => [p.key, p.publishedHC]));
+const updatedHistory = [...history, { gameId: COMMIT_ID, publishedHC: snapshotHC }].slice(-MAX_HISTORY_LENGTH);
+await putFile(
+  repoConfig,
+  HC_HISTORY_PATH,
+  JSON.stringify(updatedHistory, null, 2),
+  historyFile.sha,
+  `Record handicap history after ${COMMIT_ID}`
 );
 
 console.log("Done.");

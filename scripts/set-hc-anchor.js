@@ -30,11 +30,6 @@ const REAL_HC = {
   vinny: 5.01,
   j2: 5.33,
   lp: -1.70,
-  // Also repairs a since-fixed bug: kman (not in the active solver roster)
-  // got corrupted to publishedHC: null by an earlier recompute. The code fix
-  // stops it happening again but doesn't repair data already corrupted
-  // before the fix deployed, so reset to the standard new-player default.
-  kman: 5.0,
 };
 
 const playersFile = await getFile(repoConfig, PLAYERS_PATH);
