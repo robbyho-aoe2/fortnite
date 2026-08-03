@@ -121,8 +121,13 @@
 import { submitGame, editGame, deleteGame, isEditable } from "./lib/submit-game.js?v=1";
 
 (async function () {
-  const { players, games, config } = await loadData();
-  const byKey = playerByKey(players);
+  // players/games/byKey are reassigned in place after a successful submit/
+  // edit/delete (see applyUpdatedState below), instead of reloading the
+  // page - a reload would race GitHub Pages' ~30-60s deploy and just show
+  // stale data anyway, on top of leaving "Your Recent Submissions" not
+  // reflecting a new game at all (it was never re-rendered post-submit).
+  let { players, games, config } = await loadData();
+  let byKey = playerByKey(players);
   // kman is pending (not officially in the group yet) but still gets to
   // play, so he stays selectable here - just tucked into "Expand to all
   // players" by default (HIDDEN_BY_DEFAULT below), not on stats pages.
@@ -323,15 +328,27 @@ import { submitGame, editGame, deleteGame, isEditable } from "./lib/submit-game.
   }
   renderRecentSubmissions();
 
+  // Applies a submit/edit/delete result to the page's in-memory state and
+  // re-renders, instead of reloading - a reload would race GitHub Pages'
+  // ~30-60s deploy (the commit lands in the repo almost immediately, but
+  // the *served* data/js files don't update until that deploy finishes) and
+  // would very likely just show stale data for up to a minute anyway.
+  function applyUpdatedState(updatedPlayers) {
+    players = updatedPlayers;
+    byKey = playerByKey(players);
+    renderRecentSubmissions();
+  }
+
   async function confirmDelete(game) {
     const label = `${game.date}: ${game.team1.map((k) => displayName(byKey[k])).join(", ")} vs ${game.team2.map((k) => displayName(byKey[k])).join(", ")}`;
     if (!confirm(`Delete this game?\n\n${label}\n\nThis can't be undone.`)) return;
 
     messageEl.innerHTML = "";
     try {
-      await deleteGame(game.id);
-      messageEl.appendChild(el("div", { class: "msg success" }, "Deleted. Reloading…"));
-      setTimeout(() => window.location.reload(), 1000);
+      const result = await deleteGame(game.id);
+      games = games.filter((g) => g.id !== game.id);
+      applyUpdatedState(result.players);
+      messageEl.appendChild(el("div", { class: "msg success" }, "Deleted."));
     } catch (err) {
       messageEl.appendChild(el("div", { class: "msg error" }, err.message));
     }
@@ -401,13 +418,23 @@ import { submitGame, editGame, deleteGame, isEditable } from "./lib/submit-game.
         : await submitGame(payload);
 
       if (editingGameId) {
+        games = games.map((g) => (g.id === result.game.id ? result.game : g));
+        applyUpdatedState(result.players);
         messageEl.appendChild(el("div", { class: "msg success" },
-          `Updated! Result: ${result.game.winningTeam === 0 ? "Tie" : "Team " + result.game.winningTeam + " won"}. Reloading…`
+          `Updated! Result: ${result.game.winningTeam === 0 ? "Tie" : "Team " + result.game.winningTeam + " won"}.`
         ));
-        setTimeout(() => window.location.reload(), 1200);
+        stopEditing();
+        form.reset();
+        document.getElementById("date").valueAsDate = new Date();
+        completedCheckbox.checked = true;
+        updateRoundsUI();
+        refreshAvailability();
+        updateMatchupPreview();
         return;
       }
 
+      games = [...games, result.game];
+      applyUpdatedState(result.players);
       messageEl.appendChild(el("div", { class: "msg success" },
         `Saved! Result: ${result.game.winningTeam === 0 ? "Tie" : "Team " + result.game.winningTeam + " won"}. Handicaps have been recomputed.`
       ));
