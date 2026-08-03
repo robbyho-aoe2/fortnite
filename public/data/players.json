@@ -5,8 +5,8 @@
     "realName": "Robby",
     "active": true,
     "baseHC": 5.446576385935883,
-    "strFac": -0.05463291518041537,
-    "publishedHC": 5.39,
+    "strFac": 0.022940677948391885,
+    "publishedHC": 5.47,
     "seasonArchive": {
       "2023": {
         "games": 133,
@@ -44,8 +44,8 @@
     "realName": "Matt",
     "active": true,
     "baseHC": 3.2107618719705244,
-    "strFac": -0.220454076850486,
-    "publishedHC": 2.99,
+    "strFac": -1.1272545714973499,
+    "publishedHC": 2.08,
     "seasonArchive": {
       "2023": {
         "games": 160,
@@ -83,8 +83,8 @@
     "realName": "Mike Nolen",
     "active": true,
     "baseHC": 3.5627469188769445,
-    "strFac": 0.5365751595618877,
-    "publishedHC": 4.1,
+    "strFac": 0.4299146043537599,
+    "publishedHC": 3.99,
     "seasonArchive": {
       "2023": {
         "games": 206,
@@ -122,8 +122,8 @@
     "realName": "Doug",
     "active": true,
     "baseHC": 2.0126957657196267,
-    "strFac": -1.0664286072195932,
-    "publishedHC": 0.95,
+    "strFac": -0.9034162863786759,
+    "publishedHC": 1.11,
     "seasonArchive": {
       "2023": {
         "games": 202,
@@ -161,8 +161,8 @@
     "realName": "Kyle",
     "active": true,
     "baseHC": 4.283496450275289,
-    "strFac": 0.5195935121701027,
-    "publishedHC": 4.8,
+    "strFac": 0.687324661031157,
+    "publishedHC": 4.97,
     "seasonArchive": {
       "2023": {
         "games": 137,
@@ -200,8 +200,8 @@
     "realName": "Jim",
     "active": true,
     "baseHC": 4.4290378178068455,
-    "strFac": -0.01833158429295451,
-    "publishedHC": 4.41,
+    "strFac": 0.2558512473093048,
+    "publishedHC": 4.68,
     "seasonArchive": {
       "2023": {
         "games": 102,
@@ -239,8 +239,8 @@
     "realName": "Bello",
     "active": true,
     "baseHC": 3.258867917777095,
-    "strFac": 0.22855254690244703,
-    "publishedHC": 3.49,
+    "strFac": -0.008098470051960724,
+    "publishedHC": 3.25,
     "seasonArchive": {
       "2023": {
         "games": 179,
@@ -310,8 +310,8 @@
     "realName": "Collin",
     "active": true,
     "baseHC": 9.75,
-    "strFac": 0.8542168923709299,
-    "publishedHC": 10.6,
+    "strFac": 1.2243416490252568,
+    "publishedHC": 10.97,
     "seasonArchive": {
       "2025": {
         "games": 332,
