@@ -44,8 +44,8 @@
     "realName": "Matt",
     "active": true,
     "baseHC": 3.2107618719705244,
-    "strFac": -0.4088455592137044,
-    "publishedHC": 2.8,
+    "strFac": -1.1272545714973499,
+    "publishedHC": 2.08,
     "seasonArchive": {
       "2023": {
         "games": 160,
@@ -310,8 +310,8 @@
     "realName": "Collin",
     "active": true,
     "baseHC": 9.75,
-    "strFac": 0.8054811373990485,
-    "publishedHC": 10.56,
+    "strFac": 1.2243416490252568,
+    "publishedHC": 10.97,
     "seasonArchive": {
       "2025": {
         "games": 332,
