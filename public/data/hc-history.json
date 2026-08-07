@@ -359,5 +359,62 @@
       "lp": -1.75,
       "kman": 7.5
     }
+  },
+  {
+    "gameId": "game-1785760119047",
+    "publishedHC": {
+      "robby": 5.47,
+      "matt": 2.8,
+      "mn": 3.99,
+      "doug": 1.11,
+      "kyle": 4.97,
+      "jim": 4.68,
+      "bello": 3.25,
+      "chris": 3.99,
+      "collin": 10.56,
+      "sean": 7.44,
+      "vinny": 4.7,
+      "j2": 4.5,
+      "lp": -1.75,
+      "kman": 7.5
+    }
+  },
+  {
+    "gameId": "game-1785760119047 (deleted)",
+    "publishedHC": {
+      "robby": 5.47,
+      "matt": 2.08,
+      "mn": 3.99,
+      "doug": 1.11,
+      "kyle": 4.97,
+      "jim": 4.68,
+      "bello": 3.25,
+      "chris": 3.99,
+      "collin": 10.97,
+      "sean": 7.44,
+      "vinny": 4.7,
+      "j2": 4.5,
+      "lp": -1.75,
+      "kman": 7.5
+    }
+  },
+  {
+    "gameId": "game-1785985303573",
+    "publishedHC": {
+      "robby": 5.33,
+      "matt": 2.01,
+      "mn": 3.9,
+      "doug": 0.94,
+      "kyle": 4.86,
+      "jim": 4.83,
+      "bello": 3.03,
+      "chris": 3.94,
+      "collin": 10.97,
+      "sean": 7.03,
+      "vinny": 4.48,
+      "j2": 4.73,
+      "lp": -1.75,
+      "kman": 7.5
+    }
   }
 ]
