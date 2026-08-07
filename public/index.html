@@ -128,9 +128,6 @@ import { submitGame, editGame, deleteGame, isEditable } from "./lib/submit-game.
   // reflecting a new game at all (it was never re-rendered post-submit).
   let { players, games, config } = await loadData();
   let byKey = playerByKey(players);
-  // kman is pending (not officially in the group yet) but still gets to
-  // play, so he stays selectable here - just tucked into "Expand to all
-  // players" by default (HIDDEN_BY_DEFAULT below), not on stats pages.
   const roster = players.filter((p) => p.active && p.key !== "lp");
 
   document.getElementById("date").valueAsDate = new Date();
@@ -145,7 +142,7 @@ import { submitGame, editGame, deleteGame, isEditable } from "./lib/submit-game.
 
   // These three barely play — keep them out of the way by default, but one
   // click away for the nights they do show up.
-  const HIDDEN_BY_DEFAULT = new Set(["kman", "chris", "matt"]);
+  const HIDDEN_BY_DEFAULT = new Set(["chris", "matt"]);
 
   for (const p of sortedRoster) {
     const checkbox = el("input", { type: "checkbox", value: p.key });
