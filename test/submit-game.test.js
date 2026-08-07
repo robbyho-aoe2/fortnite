@@ -35,9 +35,17 @@ const config = JSON.parse(fs.readFileSync(path.join(dataDir, "config.json"), "ut
 const games = JSON.parse(fs.readFileSync(path.join(dataDir, "games.json"), "utf-8"));
 const hcHistory = JSON.parse(fs.readFileSync(path.join(dataDir, "hc-history.json"), "utf-8"));
 
+// Synthetic player outside ROSTER_ORDER (e.g. someone not yet added to the
+// solver roster) - used below to check a recompute leaves non-roster
+// players exactly as-is, not corrupted to null/NaN. Was previously tested
+// against "kman", but he's a real roster member now (added once he started
+// playing for real), so this stands in for that scenario going forward.
+const nonRosterPlayer = { key: "zzznonroster", alias: "Nonroster Test", realName: "Nonroster", active: true, baseHC: 5, strFac: 0, publishedHC: 5, seasonArchive: {} };
+const playersWithNonRoster = [...players, nonRosterPlayer];
+
 const mockFiles = {
   "public/data/config.json": JSON.stringify(config),
-  "public/data/players.json": JSON.stringify(players),
+  "public/data/players.json": JSON.stringify(playersWithNonRoster),
   "public/data/games.json": JSON.stringify(games),
   "public/data/hc-history.json": JSON.stringify(hcHistory),
 };
@@ -70,7 +78,7 @@ const requestBody = { date: "2026-08-01", team1: ["robby", "kyle"], team1Score: 
 const result = await submitGame(requestBody, testRepoConfig);
 
 assert.ok(result.game, "result should include the new game");
-assert.ok(result.players.length === players.length, "result should include full updated roster");
+assert.ok(result.players.length === playersWithNonRoster.length, "result should include full updated roster");
 
 const persistedGames = JSON.parse(mockFiles["public/data/games.json"]);
 assert.strictEqual(persistedGames.length, games.length + 1, "new game should be persisted");
@@ -82,14 +90,13 @@ const robbyAfter = persistedPlayers.find((p) => p.key === "robby").publishedHC;
 console.log(`robby publishedHC before: ${robbyBefore}, after: ${robbyAfter}`);
 assert.ok(Number.isFinite(robbyAfter), "recomputed handicap should be a finite number");
 
-// Regression: a player outside the active solver roster (e.g. "kman", brand
-// new with no games) must be left exactly as-is, not corrupted to null/NaN.
-// The solver's returned baseHC map retains every player's key even though it
-// only actually updates roster players, so this is easy to get wrong by
-// checking `key in baseHC` instead of roster membership.
-const kmanBefore = players.find((p) => p.key === "kman");
-const kmanAfter = persistedPlayers.find((p) => p.key === "kman");
-assert.deepStrictEqual(kmanAfter, kmanBefore, "a non-roster player's record should be untouched by a recompute");
+// Regression: a player outside the active solver roster must be left
+// exactly as-is, not corrupted to null/NaN. The solver's returned baseHC
+// map retains every player's key even though it only actually updates
+// roster players, so this is easy to get wrong by checking `key in baseHC`
+// instead of roster membership.
+const nonRosterAfter = persistedPlayers.find((p) => p.key === "zzznonroster");
+assert.deepStrictEqual(nonRosterAfter, nonRosterPlayer, "a non-roster player's record should be untouched by a recompute");
 
 const historyAfterSubmit = JSON.parse(mockFiles["public/data/hc-history.json"]);
 assert.strictEqual(historyAfterSubmit.length, hcHistory.length + 1, "a submission should append exactly one history snapshot");

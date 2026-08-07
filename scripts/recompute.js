@@ -17,7 +17,7 @@ const GAMES_PATH = "public/data/games.json";
 const CONFIG_PATH = "public/data/config.json";
 const HC_HISTORY_PATH = "public/data/hc-history.json";
 const MAX_HISTORY_LENGTH = 250;
-const ROSTER_ORDER = ["robby", "matt", "mn", "doug", "kyle", "jim", "bello", "chris", "collin", "sean", "vinny", "j2", "lp"];
+const ROSTER_ORDER = ["robby", "matt", "mn", "doug", "kyle", "jim", "bello", "chris", "collin", "sean", "vinny", "j2", "kman", "lp"];
 
 const [configFile, playersFile, gamesFile, historyFile] = await Promise.all([
   getFile(repoConfig, CONFIG_PATH),

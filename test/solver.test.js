@@ -11,7 +11,7 @@ const config = JSON.parse(fs.readFileSync(path.join(dataDir, "config.json"), "ut
 const players = JSON.parse(fs.readFileSync(path.join(dataDir, "players.json"), "utf-8"));
 const games = JSON.parse(fs.readFileSync(path.join(dataDir, "games.json"), "utf-8"));
 
-const rosterOrder = ["robby", "matt", "mn", "doug", "kyle", "jim", "bello", "chris", "collin", "sean", "vinny", "j2", "lp"];
+const rosterOrder = ["robby", "matt", "mn", "doug", "kyle", "jim", "bello", "chris", "collin", "sean", "vinny", "j2", "kman", "lp"];
 
 console.log("--- Sanity: breakeven / grading ---");
 const bk = computeBreakeven(12.24, 14.6, config.raceScale);

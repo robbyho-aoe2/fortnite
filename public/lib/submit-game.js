@@ -18,7 +18,7 @@ const PLAYERS_PATH = "public/data/players.json";
 const CONFIG_PATH = "public/data/config.json";
 const HC_HISTORY_PATH = "public/data/hc-history.json";
 
-const ROSTER_ORDER = ["robby", "matt", "mn", "doug", "kyle", "jim", "bello", "chris", "collin", "sean", "vinny", "j2", "lp"];
+const ROSTER_ORDER = ["robby", "matt", "mn", "doug", "kyle", "jim", "bello", "chris", "collin", "sean", "vinny", "j2", "kman", "lp"];
 
 // How many recompute snapshots to keep for the Handicaps page's "change
 // since last game" / "change over last 20 games" columns. Comfortably more
