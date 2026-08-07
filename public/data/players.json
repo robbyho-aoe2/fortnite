@@ -420,8 +420,8 @@
     "realName": "K-Man",
     "active": true,
     "baseHC": 7.5,
-    "publishedHC": 7.5,
+    "publishedHC": 6.22,
     "seasonArchive": {},
-    "strFac": 0
+    "strFac": -1.2803300858899107
   }
 ]
