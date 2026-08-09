@@ -5,8 +5,8 @@
     "realName": "Robby",
     "active": true,
     "baseHC": 5.310125488305232,
-    "strFac": -0.13567776859276687,
-    "publishedHC": 5.17,
+    "strFac": -0.1777233581077988,
+    "publishedHC": 5.13,
     "seasonArchive": {
       "2023": {
         "games": 133,
@@ -83,8 +83,8 @@
     "realName": "Mike Nolen",
     "active": true,
     "baseHC": 3.4715295314655017,
-    "strFac": 0.4299146043537599,
-    "publishedHC": 3.9,
+    "strFac": 0.4724032232769512,
+    "publishedHC": 3.94,
     "seasonArchive": {
       "2023": {
         "games": 206,
@@ -161,8 +161,8 @@
     "realName": "Kyle",
     "active": true,
     "baseHC": 4.148912860638668,
-    "strFac": 0.4014910294202465,
-    "publishedHC": 4.55,
+    "strFac": 0.16286267330629237,
+    "publishedHC": 4.31,
     "seasonArchive": {
       "2023": {
         "games": 137,
@@ -420,8 +420,8 @@
     "realName": "K-Man",
     "active": true,
     "baseHC": 7.5,
-    "publishedHC": 7.09,
+    "publishedHC": 7.5,
     "seasonArchive": {},
-    "strFac": -0.4090521728088512
+    "strFac": 0
   }
 ]
