@@ -8375,5 +8375,22 @@
     "roundsPlayed": 20,
     "winningTeam": 1,
     "team1Threshold": 8
+  },
+  {
+    "id": "game-1786241099269",
+    "date": "2026-08-09",
+    "team1": [
+      "doug",
+      "kman"
+    ],
+    "team2": [
+      "robby",
+      "kyle"
+    ],
+    "team1Score": 8,
+    "rawTeam1Score": 8,
+    "roundsPlayed": 20,
+    "winningTeam": 1,
+    "team1Threshold": 7
   }
 ]
