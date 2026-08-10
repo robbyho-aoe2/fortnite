@@ -8421,11 +8421,11 @@
       "doug",
       "jim"
     ],
-    "team1Score": 6,
-    "rawTeam1Score": 6,
+    "team1Score": 14,
+    "rawTeam1Score": 14,
     "roundsPlayed": 20,
-    "winningTeam": 2,
-    "team1Threshold": 13
+    "winningTeam": 1,
+    "team1Threshold": 11
   },
   {
     "id": "game-1786365422906",
