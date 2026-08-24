@@ -104,9 +104,23 @@ function buildGameRecord(payload, players, raceConfig, id) {
   const roundsPlayed = payload.roundsPlayed || raceConfig.raceScale.total;
   const scaledTeam1Score = Math.round(payload.team1Score * (raceConfig.raceScale.total / roundsPlayed) * 100) / 100;
 
+  // There's never a "true" uneven match - whichever side has fewer real
+  // players always gets the LP filler added, same as the Auto Teams
+  // preview and live matchup preview already show before submission. This
+  // has to happen here too (not just in the preview), or a genuinely
+  // uneven game grades against the wrong, unadjusted totals: a team can
+  // clear the number they were shown pre-game and still lose, because the
+  // preview promised an LP adjustment the actual grading never applied.
+  const team1 = [...payload.team1];
+  const team2 = [...payload.team2];
+  if (team1.length !== team2.length) {
+    if (team1.length < team2.length) team1.push("lp");
+    else team2.push("lp");
+  }
+
   const hcByKey = Object.fromEntries(players.map((p) => [p.key, p.publishedHC || 0]));
-  const t1Total = teamHCTotal(payload.team1, hcByKey);
-  const t2Total = teamHCTotal(payload.team2, hcByKey);
+  const t1Total = teamHCTotal(team1, hcByKey);
+  const t2Total = teamHCTotal(team2, hcByKey);
   // The stored record uses the same raw-fractional-breakeven grading as the
   // solver (gradeMatch), not the rounded display breakeven - an exact match
   // is the only tie case, same as the original spreadsheet.
@@ -117,8 +131,8 @@ function buildGameRecord(payload, players, raceConfig, id) {
     game: {
       id,
       date: payload.date,
-      team1: payload.team1,
-      team2: payload.team2,
+      team1,
+      team2,
       team1Score: scaledTeam1Score,
       rawTeam1Score: payload.team1Score,
       roundsPlayed,

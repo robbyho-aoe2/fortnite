@@ -103,6 +103,39 @@ assert.strictEqual(historyAfterSubmit.length, hcHistory.length + 1, "a submissio
 assert.strictEqual(historyAfterSubmit.at(-1).gameId, result.game.id, "the new snapshot should be tagged with the new game's id");
 assert.strictEqual(historyAfterSubmit.at(-1).publishedHC.robby, robbyAfter, "the snapshot should record the freshly recomputed handicap");
 
+console.log("\n--- uneven team sizes get an automatic LP filler ---");
+
+// There's never a "true" 2v3 - whichever side has fewer real players always
+// gets LP added, same as the Auto Teams/matchup preview already show
+// before submission. This regressed once already: buildGameRecord graded
+// straight off the submitted (uneven) totals with no LP adjustment at all,
+// so a team could clear the number the preview promised them and still
+// lose, because the preview's promised adjustment was never actually
+// applied at grading time.
+const unevenBody = { date: "2026-08-05", team1: ["robby", "kyle"], team1Score: 11, team2: ["doug", "sean", "mn"] };
+// Snapshot handicaps as they stand *before* this submission - grading uses
+// whatever's current at the moment of submission, before this game's own
+// recompute can shift anyone (even slightly), so the cross-check below has
+// to use the same pre-game snapshot buildGameRecord actually graded against.
+const hcBeforeThisGame = Object.fromEntries(
+  JSON.parse(mockFiles["public/data/players.json"]).map((p) => [p.key, p.publishedHC || 0])
+);
+const unevenResult = await submitGame(unevenBody, testRepoConfig);
+
+assert.strictEqual(unevenResult.game.team1.length, unevenResult.game.team2.length, "LP should even out a 2v3 submission to 3v3");
+assert.ok(unevenResult.game.team1.includes("lp"), "LP should be added to the smaller side (team1, 2 players vs 3)");
+
+const { gradeMatch: gradeMatchCheck, teamHCTotal: teamHCTotalCheck } = await import("../public/lib/solver.js");
+const expectedWinner = gradeMatchCheck(
+  teamHCTotalCheck(unevenResult.game.team1, hcBeforeThisGame),
+  teamHCTotalCheck(unevenResult.game.team2, hcBeforeThisGame),
+  unevenResult.game.team1Score,
+  config.raceScale
+);
+assert.strictEqual(unevenResult.game.winningTeam, expectedWinner, "the stored winner should match gradeMatch on the LP-inclusive totals");
+
+console.log("Uneven team size / LP filler checks passed.");
+
 console.log("\n--- rounds-played scaling ---");
 
 // A game that ended 5-5 at round 10 of 20 should grade identically to 10-10.
@@ -139,7 +172,7 @@ assert.deepStrictEqual(editResult.game.team1, ["robby", "sean"], "edited team1 s
 assert.strictEqual(editResult.game.team1Score, 9, "edited score should be persisted");
 
 const gamesAfterEdit = JSON.parse(mockFiles["public/data/games.json"]);
-assert.strictEqual(gamesAfterEdit.length, games.length + 2, "editing should not change the total game count (replace, not append)");
+assert.strictEqual(gamesAfterEdit.length, games.length + 3, "editing should not change the total game count (replace, not append)");
 assert.strictEqual(gamesAfterEdit.filter((g) => g.id === shortGameResult.game.id).length, 1, "there should be exactly one entry for the edited game");
 
 await assert.rejects(
