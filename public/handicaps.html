@@ -63,9 +63,9 @@
   const byKey = playerByKey(players);
   const games2026 = gamesInYear(games, 2026);
 
-  // Pending players (e.g. someone new who hasn't officially joined the
-  // group yet) don't have an established handicap worth showing here.
-  const visiblePlayers = players.filter((p) => p.active && !p.pending);
+  // kman plays and adjusts normally (see ROSTER_ORDER in solver.js), but
+  // isn't shown on the leaderboard yet.
+  const visiblePlayers = players.filter((p) => p.active && !p.pending && p.key !== "kman");
   const rows = visiblePlayers
     .sort((a, b) => (b.publishedHC || 0) - (a.publishedHC || 0));
 
@@ -101,18 +101,19 @@
   for (const g of recent) {
     const winningTeam = g.winningTeam;
     const resultClass = winningTeam === 0 ? "tie" : "win";
-    // Margin is against the pre-game "wins needed to tie" target, not a flat
-    // round-count split - beating a target of 6 by scoring 7 reads as "won
-    // by 1", not "won by 8" (7 vs the other team's implied 13). New games
-    // store the target frozen from submission time; legacy games (migrated
-    // before this field existed) fall back to a live estimate from current
-    // handicaps, since their original target was never recorded.
-    const team1Threshold = g.team1Threshold ?? roundedBreakeven(
-      g.team1.reduce((sum, k) => sum + (byKey[k]?.publishedHC || 0), 0),
-      g.team2.reduce((sum, k) => sum + (byKey[k]?.publishedHC || 0), 0),
-      config.raceScale
-    ).team1Threshold;
-    const margin = fmtScore(Math.abs(g.team1Score - team1Threshold));
+    // Margin is against the *exact* fractional target that actually decided
+    // the game, not the rounded whole-number one announced pre-game -
+    // beating a rounded target of 6 (really 5.7) by scoring 7 reads as "won
+    // by 1.3", not "won by 1". New games store this frozen from submission
+    // time; legacy games (migrated before this field existed) fall back to
+    // a live estimate from current handicaps, since their original target
+    // was never recorded.
+    const team1ThresholdRaw = g.team1ThresholdRaw ?? (
+      g.team1.reduce((sum, k) => sum + (byKey[k]?.publishedHC || 0), 0)
+      - g.team2.reduce((sum, k) => sum + (byKey[k]?.publishedHC || 0), 0)
+      + config.raceScale.half
+    );
+    const margin = Math.abs(g.team1Score - team1ThresholdRaw).toFixed(1);
     const resultText = winningTeam === 0 ? "Tie" : winningTeam === 1 ? `Team 1 beat Team 2 by ${margin}` : `Team 2 beat Team 1 by ${margin}`;
     const scoreText = `${fmtScore(g.team1Score)}-${fmtScore(config.raceScale.total - g.team1Score)}`;
     recentBody.appendChild(el("tr", {}, [

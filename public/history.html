@@ -56,22 +56,23 @@
       btn.classList.toggle("active", btn.dataset.year === activeYear);
     }
 
+    // kman plays and adjusts normally, but isn't shown on Season History yet.
     let rows;
     if (activeYear === "last25") {
       rows = players
-        .filter((p) => p.active && !p.pending)
+        .filter((p) => p.active && !p.pending && p.key !== "kman")
         .map((p) => ({ p, record: lastNGamesRecord(p, games, 25) }))
         .filter(({ record }) => record.games > 0)
         .sort((a, b) => (b.record.winPct ?? 0) - (a.record.winPct ?? 0));
     } else if (activeYear === "2026") {
       rows = players
-        .filter((p) => p.active && !p.pending)
+        .filter((p) => p.active && !p.pending && p.key !== "kman")
         .map((p) => ({ p, record: record2026(p, games) }))
         .filter(({ record }) => record.games > 0)
         .sort((a, b) => (b.record.winPct ?? 0) - (a.record.winPct ?? 0));
     } else {
       rows = players
-        .filter((p) => !p.pending && p.seasonArchive && p.seasonArchive[activeYear])
+        .filter((p) => !p.pending && p.key !== "kman" && p.seasonArchive && p.seasonArchive[activeYear])
         .map((p) => {
           const a = p.seasonArchive[activeYear];
           return { p, record: { games: a.games, w: a.w, l: a.l, t: a.t, winPct: a.winPct } };

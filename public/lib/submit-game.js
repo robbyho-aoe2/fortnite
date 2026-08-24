@@ -126,6 +126,10 @@ function buildGameRecord(payload, players, raceConfig, id) {
   // is the only tie case, same as the original spreadsheet.
   const winningTeam = gradeMatch(t1Total, t2Total, scaledTeam1Score, raceConfig.raceScale);
   const { team1Threshold, team2Threshold } = computeBreakeven(t1Total, t2Total, raceConfig.raceScale);
+  // The exact (unrounded) target, frozen alongside the rounded one - lets
+  // the margin shown after the fact ("beat them by 1.3") reflect what
+  // actually decided the game, not the whole-number pre-game announcement.
+  const rawTeam1Threshold = (t1Total - t2Total) + raceConfig.raceScale.half;
 
   return {
     game: {
@@ -143,6 +147,7 @@ function buildGameRecord(payload, players, raceConfig, id) {
       // instead of a bare round-count margin, without having to re-derive
       // it from possibly-since-changed current handicaps.
       team1Threshold,
+      team1ThresholdRaw: rawTeam1Threshold,
     },
     breakeven: { team1Threshold, team2Threshold },
   };

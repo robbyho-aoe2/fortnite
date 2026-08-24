@@ -142,7 +142,7 @@ import { submitGame, editGame, deleteGame, isEditable } from "./lib/submit-game.
 
   // These three barely play — keep them out of the way by default, but one
   // click away for the nights they do show up.
-  const HIDDEN_BY_DEFAULT = new Set(["chris", "matt"]);
+  const HIDDEN_BY_DEFAULT = new Set(["chris", "matt", "kman"]);
 
   for (const p of sortedRoster) {
     const checkbox = el("input", { type: "checkbox", value: p.key });
