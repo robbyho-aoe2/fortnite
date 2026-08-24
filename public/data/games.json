@@ -8291,7 +8291,8 @@
     "date": "2026-08-01",
     "team1": [
       "kyle",
-      "jim"
+      "jim",
+      "lp"
     ],
     "team2": [
       "matt",
@@ -8302,7 +8303,7 @@
     "rawTeam1Score": 9,
     "roundsPlayed": 20,
     "winningTeam": 1,
-    "team1Threshold": 6
+    "team1Threshold": 8
   },
   {
     "id": "game-1785636659287",
@@ -8577,13 +8578,14 @@
     ],
     "team2": [
       "kyle",
-      "sean"
+      "sean",
+      "lp"
     ],
     "team1Score": 10,
     "rawTeam1Score": 10,
     "roundsPlayed": 20,
     "winningTeam": 1,
-    "team1Threshold": 8
+    "team1Threshold": 10
   },
   {
     "id": "game-1787369341477",
@@ -8606,10 +8608,11 @@
   },
   {
     "id": "game-1787575859425",
-    "date": "2026-08-24",
+    "date": "2026-08-23",
     "team1": [
       "sean",
-      "j2"
+      "j2",
+      "lp"
     ],
     "team2": [
       "doug",
@@ -8619,7 +8622,7 @@
     "team1Score": 12,
     "rawTeam1Score": 12,
     "roundsPlayed": 20,
-    "winningTeam": 2,
-    "team1Threshold": 12
+    "winningTeam": 1,
+    "team1Threshold": 11
   }
 ]

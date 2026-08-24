@@ -815,5 +815,62 @@
       "lp": -1.98,
       "kman": 7.5
     }
+  },
+  {
+    "gameId": "recompute-after-strength-factor-fix",
+    "publishedHC": {
+      "robby": 4.77,
+      "matt": 1.57,
+      "mn": 2.57,
+      "doug": 0.73,
+      "kyle": 3.8,
+      "jim": 5.39,
+      "bello": 2.59,
+      "chris": 3.86,
+      "collin": 10.97,
+      "sean": 6.81,
+      "vinny": 4.41,
+      "j2": 5.28,
+      "lp": -2,
+      "kman": 7.5
+    }
+  },
+  {
+    "gameId": "recompute-after-strength-factor-fix",
+    "publishedHC": {
+      "robby": 4.77,
+      "matt": 1.57,
+      "mn": 2.57,
+      "doug": 0.73,
+      "kyle": 3.8,
+      "jim": 5.39,
+      "bello": 2.59,
+      "chris": 3.86,
+      "collin": 10.97,
+      "sean": 6.81,
+      "vinny": 4.41,
+      "j2": 5.28,
+      "lp": -2,
+      "kman": 7.5
+    }
+  },
+  {
+    "gameId": "game-1787575859425",
+    "publishedHC": {
+      "robby": 4.77,
+      "matt": 1.57,
+      "mn": 2.57,
+      "doug": 0.73,
+      "kyle": 3.8,
+      "jim": 5.39,
+      "bello": 2.59,
+      "chris": 3.86,
+      "collin": 10.97,
+      "sean": 6.81,
+      "vinny": 4.41,
+      "j2": 5.28,
+      "lp": -2,
+      "kman": 7.5
+    }
   }
 ]
