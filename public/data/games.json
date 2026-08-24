@@ -8608,7 +8608,7 @@
   },
   {
     "id": "game-1787575859425",
-    "date": "2026-08-24",
+    "date": "2026-08-23",
     "team1": [
       "sean",
       "j2",
@@ -8623,6 +8623,6 @@
     "rawTeam1Score": 12,
     "roundsPlayed": 20,
     "winningTeam": 1,
-    "team1Threshold": 10
+    "team1Threshold": 11
   }
 ]
