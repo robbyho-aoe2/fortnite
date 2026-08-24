@@ -162,7 +162,20 @@ import { submitGame, editGame, deleteGame, isEditable } from "./lib/submit-game.
     return [...poolGrid.querySelectorAll("input:checked")].map((i) => i.value);
   }
 
-  document.getElementById("generate-btn").addEventListener("click", () => {
+  // Handicaps were loaded once at page load - if the page sat open while
+  // someone else submitted a game elsewhere, that snapshot goes stale, and
+  // showing a wrong "wins to tie" target reads as a real bug (a team can
+  // hit the number shown and still lose, because the actual grading always
+  // uses fresh data pulled fresh at submit time). Re-fetching right before
+  // anything that displays a target keeps what's shown honest.
+  async function refreshPlayers() {
+    const fresh = await fetch(cacheBust("data/players.json")).then((r) => r.json());
+    players = fresh;
+    byKey = playerByKey(players);
+  }
+
+  document.getElementById("generate-btn").addEventListener("click", async () => {
+    await refreshPlayers();
     const pool = poolSelection();
     const wrap = document.getElementById("splits-wrap");
     const tbody = document.querySelector("#splits-table tbody");
@@ -203,7 +216,9 @@ import { submitGame, editGame, deleteGame, isEditable } from "./lib/submit-game.
     }
   });
 
-  document.getElementById("custom-teams-btn").addEventListener("click", () => {
+  document.getElementById("custom-teams-btn").addEventListener("click", async () => {
+    await refreshPlayers();
+    updateMatchupPreview();
     document.getElementById("build-teams-heading").scrollIntoView({ behavior: "smooth", block: "start" });
   });
 
@@ -233,10 +248,11 @@ import { submitGame, editGame, deleteGame, isEditable } from "./lib/submit-game.
     }
   }
 
-  function applySplit(teamA, teamB) {
+  async function applySplit(teamA, teamB) {
     setSelected(team1Grid, teamA);
     setSelected(team2Grid, teamB);
     refreshAvailability();
+    await refreshPlayers();
     updateMatchupPreview();
     document.getElementById("build-teams-heading").scrollIntoView({ behavior: "smooth" });
   }
@@ -271,8 +287,8 @@ import { submitGame, editGame, deleteGame, isEditable } from "./lib/submit-game.
       `Team 1 needs ${fmtNum(team1Threshold, 0)} wins to tie · Team 2 needs ${fmtNum(team2Threshold, 0)} wins to tie${lpNote}`;
   }
 
-  team1Grid.addEventListener("change", () => { refreshAvailability(); updateMatchupPreview(); });
-  team2Grid.addEventListener("change", () => { refreshAvailability(); updateMatchupPreview(); });
+  team1Grid.addEventListener("change", async () => { refreshAvailability(); await refreshPlayers(); updateMatchupPreview(); });
+  team2Grid.addEventListener("change", async () => { refreshAvailability(); await refreshPlayers(); updateMatchupPreview(); });
 
   // ---------- Completed / rounds-played toggle ----------
   const completedCheckbox = document.getElementById("completed");
