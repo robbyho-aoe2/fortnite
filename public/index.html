@@ -82,7 +82,7 @@
       </div>
 
       <div class="field">
-        <label for="team1Score">Team 1 wins <span id="rounds-hint"></span></label>
+        <label for="team1Score">Team 1<span id="team1-score-names"></span> wins <span id="rounds-hint"></span></label>
         <input type="number" id="team1Score" min="0" step="any" required />
       </div>
 
@@ -273,9 +273,16 @@ import { submitGame, editGame, deleteGame, isEditable } from "./lib/submit-game.
     }
   }
 
+  function updateTeam1ScoreLabel() {
+    const t1 = selectedKeys(team1Grid);
+    const namesEl = document.getElementById("team1-score-names");
+    namesEl.textContent = t1.length > 0 ? ` (${t1.map((k) => displayName(byKey[k])).join(", ")})` : "";
+  }
+
   function updateMatchupPreview() {
     const t1 = selectedKeys(team1Grid);
     const t2 = selectedKeys(team2Grid);
+    updateTeam1ScoreLabel();
     const textEl = document.getElementById("matchup-text");
     if (t1.length === 0 || t2.length === 0) {
       textEl.textContent = "Pick at least one player per team to see wins needed to tie.";
