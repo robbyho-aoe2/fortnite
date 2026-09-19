@@ -4,9 +4,9 @@
     "alias": "not A theist",
     "realName": "Robby",
     "active": true,
-    "baseHC": 4.797244053368567,
-    "strFac": 0.03799784445425422,
-    "publishedHC": 4.84,
+    "baseHC": 4.693055254460255,
+    "strFac": -0.11488127274730567,
+    "publishedHC": 4.58,
     "seasonArchive": {
       "2023": {
         "games": 133,
@@ -43,9 +43,9 @@
     "alias": "MightyMosaic389",
     "realName": "Matt",
     "active": true,
-    "baseHC": 2.5484940436564476,
+    "baseHC": 2.434398931502855,
     "strFac": -1.1272545714973499,
-    "publishedHC": 1.42,
+    "publishedHC": 1.31,
     "seasonArchive": {
       "2023": {
         "games": 160,
@@ -200,8 +200,8 @@
     "realName": "Jim",
     "active": true,
     "baseHC": 4.181826045677608,
-    "strFac": 0.7229257003257561,
-    "publishedHC": 4.9,
+    "strFac": 0.40129534030065594,
+    "publishedHC": 4.58,
     "seasonArchive": {
       "2023": {
         "games": 102,
@@ -239,8 +239,8 @@
     "realName": "Bello",
     "active": true,
     "baseHC": 2.770669265811401,
-    "strFac": -0.14240439596660365,
-    "publishedHC": 2.63,
+    "strFac": -0.12726117717726565,
+    "publishedHC": 2.64,
     "seasonArchive": {
       "2023": {
         "games": 179,
