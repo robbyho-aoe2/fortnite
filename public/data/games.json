@@ -8776,5 +8776,23 @@
     "winningTeam": 1,
     "team1Threshold": 9,
     "team1ThresholdRaw": 8.76
+  },
+  {
+    "id": "game-1789957149255",
+    "date": "2026-09-21",
+    "team1": [
+      "robby",
+      "doug"
+    ],
+    "team2": [
+      "mn",
+      "kyle"
+    ],
+    "team1Score": 13,
+    "rawTeam1Score": 13,
+    "roundsPlayed": 20,
+    "winningTeam": 1,
+    "team1Threshold": 9,
+    "team1ThresholdRaw": 9.09
   }
 ]
