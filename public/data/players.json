@@ -4,9 +4,9 @@
     "alias": "not A theist",
     "realName": "Robby",
     "active": true,
-    "baseHC": 5.003652093353339,
-    "strFac": -0.07304184349792918,
-    "publishedHC": 4.93,
+    "baseHC": 4.899032356844886,
+    "strFac": -0.22246946397919037,
+    "publishedHC": 4.68,
     "seasonArchive": {
       "2023": {
         "games": 133,
@@ -83,8 +83,8 @@
     "realName": "Mike Nolen",
     "active": true,
     "baseHC": 2.952329918271627,
-    "strFac": -0.6823408085014061,
-    "publishedHC": 2.27,
+    "strFac": -0.6388620059832648,
+    "publishedHC": 2.31,
     "seasonArchive": {
       "2023": {
         "games": 206,
@@ -122,8 +122,8 @@
     "realName": "Doug",
     "active": true,
     "baseHC": 0.9599740420722173,
-    "strFac": 0.0536794022362333,
-    "publishedHC": 1.01,
+    "strFac": -0.1451818327099864,
+    "publishedHC": 0.81,
     "seasonArchive": {
       "2023": {
         "games": 202,
@@ -161,8 +161,8 @@
     "realName": "Kyle",
     "active": true,
     "baseHC": 3.6179728218719696,
-    "strFac": -0.031120257561591872,
-    "publishedHC": 3.59,
+    "strFac": -0.021044640061650972,
+    "publishedHC": 3.6,
     "seasonArchive": {
       "2023": {
         "games": 137,
