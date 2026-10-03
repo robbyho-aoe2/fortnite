@@ -5,8 +5,8 @@
     "realName": "Robby",
     "active": true,
     "baseHC": 4.650817608628083,
-    "strFac": -0.8294254330571149,
-    "publishedHC": 3.82,
+    "strFac": -0.7869051267313152,
+    "publishedHC": 3.86,
     "seasonArchive": {
       "2023": {
         "games": 133,
@@ -200,8 +200,8 @@
     "realName": "Jim",
     "active": true,
     "baseHC": 3.986724557762251,
-    "strFac": 0.11457135052850355,
-    "publishedHC": 4.1,
+    "strFac": 0.15398395252672137,
+    "publishedHC": 4.14,
     "seasonArchive": {
       "2023": {
         "games": 102,
@@ -239,8 +239,8 @@
     "realName": "Bello",
     "active": true,
     "baseHC": 2.563419933184423,
-    "strFac": 0.1265559930851374,
-    "publishedHC": 2.69,
+    "strFac": 0,
+    "publishedHC": 2.56,
     "seasonArchive": {
       "2023": {
         "games": 179,
