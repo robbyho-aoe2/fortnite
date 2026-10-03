@@ -5,8 +5,8 @@
     "realName": "Robby",
     "active": true,
     "baseHC": 4.526937348819424,
-    "strFac": -0.9077819822853839,
-    "publishedHC": 3.62,
+    "strFac": -0.9420492763593058,
+    "publishedHC": 3.58,
     "seasonArchive": {
       "2023": {
         "games": 133,
@@ -83,8 +83,8 @@
     "realName": "Mike Nolen",
     "active": true,
     "baseHC": 2.9180660525467816,
-    "strFac": -0.5505936280225482,
-    "publishedHC": 2.37,
+    "strFac": -0.5146829215862674,
+    "publishedHC": 2.4,
     "seasonArchive": {
       "2023": {
         "games": 206,
@@ -278,8 +278,8 @@
     "realName": "Chris",
     "active": true,
     "baseHC": 4.627864886409271,
-    "strFac": -0.7075735931288071,
-    "publishedHC": 3.92,
+    "strFac": -0.7924264068711929,
+    "publishedHC": 3.84,
     "seasonArchive": {
       "2024": {
         "games": 7,
@@ -385,8 +385,8 @@
     "realName": "Jimmy",
     "active": true,
     "baseHC": 5.572508211211873,
-    "strFac": -0.025100793456093534,
-    "publishedHC": 5.55,
+    "strFac": 0.26091680858714444,
+    "publishedHC": 5.83,
     "seasonArchive": {
       "2025": {
         "games": 447,
