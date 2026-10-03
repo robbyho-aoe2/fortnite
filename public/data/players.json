@@ -4,9 +4,9 @@
     "alias": "not A theist",
     "realName": "Robby",
     "active": true,
-    "baseHC": 4.631651716981382,
-    "strFac": -0.7489836901088432,
-    "publishedHC": 3.88,
+    "baseHC": 4.526937348819424,
+    "strFac": -0.9077819822853839,
+    "publishedHC": 3.62,
     "seasonArchive": {
       "2023": {
         "games": 133,
@@ -43,9 +43,9 @@
     "alias": "MightyMosaic389",
     "realName": "Matt",
     "active": true,
-    "baseHC": 2.5713252453955557,
+    "baseHC": 2.4590887257347385,
     "strFac": -1.1272545714973499,
-    "publishedHC": 1.44,
+    "publishedHC": 1.33,
     "seasonArchive": {
       "2023": {
         "games": 160,
@@ -82,9 +82,9 @@
     "alias": "garfunkelmoose",
     "realName": "Mike Nolen",
     "active": true,
-    "baseHC": 2.815140818736678,
-    "strFac": -0.842495129262613,
-    "publishedHC": 1.97,
+    "baseHC": 2.9180660525467816,
+    "strFac": -0.5505936280225482,
+    "publishedHC": 2.37,
     "seasonArchive": {
       "2023": {
         "games": 206,
@@ -122,8 +122,8 @@
     "realName": "Doug",
     "active": true,
     "baseHC": 0.5980227591989999,
-    "strFac": 0.06357273941972952,
-    "publishedHC": 0.66,
+    "strFac": -0.13412095149047093,
+    "publishedHC": 0.46,
     "seasonArchive": {
       "2023": {
         "games": 202,
@@ -161,8 +161,8 @@
     "realName": "Kyle",
     "active": true,
     "baseHC": 3.760768139719575,
-    "strFac": -0.010408771055855331,
-    "publishedHC": 3.75,
+    "strFac": -0.02244258887741752,
+    "publishedHC": 3.74,
     "seasonArchive": {
       "2023": {
         "games": 137,
@@ -200,8 +200,8 @@
     "realName": "Jim",
     "active": true,
     "baseHC": 3.9688687336313415,
-    "strFac": 0.11115660326458192,
-    "publishedHC": 4.08,
+    "strFac": 0.1487806906942239,
+    "publishedHC": 4.12,
     "seasonArchive": {
       "2023": {
         "games": 102,
@@ -360,8 +360,8 @@
     "realName": "Vinny",
     "active": true,
     "baseHC": 3.801063969592119,
-    "strFac": 0.18198719244257944,
-    "publishedHC": 3.98,
+    "strFac": 0.47382530846304294,
+    "publishedHC": 4.27,
     "seasonArchive": {
       "2025": {
         "games": 201,
@@ -385,8 +385,8 @@
     "realName": "Jimmy",
     "active": true,
     "baseHC": 5.572508211211873,
-    "strFac": -0.05942391880339373,
-    "publishedHC": 5.51,
+    "strFac": -0.025100793456093534,
+    "publishedHC": 5.55,
     "seasonArchive": {
       "2025": {
         "games": 447,
