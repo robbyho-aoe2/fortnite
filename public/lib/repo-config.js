@@ -20,7 +20,7 @@
 // scoped to robbyho-aoe2/fortnite, Contents: Read and write. Then run
 // btoa([...token].reverse().join("")) in a console and paste the result below.
 
-const ENCODED_TOKEN = "NU45MzdTY3dDUkw2TjJNU0FqYnZrNG93TlRmVE9NRnR5VzkwUzRUQW1IeUdWTXFCTEZQeXJleXlhZWdfbmdzNEM4MUtycUh3MFlaR0k0SEMxMV90YXBfYnVodGln";
+const ENCODED_TOKEN = "a0tiV2Iwek43V0xNVjVOWDR0YXAwVmZhMXJOVW9oT0paSTNZQTd6N3hyakI4THQ0Z2hyZ1lQbWV2SGVfZkZzc3V4bjN4UW94MFlaR0k0SEMxMV90YXBfYnVodGln";
 
 function decodeToken(encoded) {
   return atob(encoded).split("").reverse().join("");
