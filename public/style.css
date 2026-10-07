@@ -217,3 +217,19 @@ button.primary:hover:not(:disabled) { filter: brightness(1.08); }
   cursor: pointer;
 }
 .year-tabs button.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+/* "Install app" footer (see renderInstallFooter in app.js) */
+.install-footer {
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+.install-footer button.primary { align-self: auto; padding: 10px 18px; font-size: 0.95rem; }

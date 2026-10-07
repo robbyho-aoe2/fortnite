@@ -8,6 +8,63 @@ if ("serviceWorker" in navigator) {
   });
 }
 
+// ---- "Install app" footer, bottom of every page ----
+// Chrome/Edge/Android fire `beforeinstallprompt` when the site is installable;
+// we hold onto that event and show a button that triggers it. iOS has no such
+// event (Safari only installs via Share -> Add to Home Screen), so iPhone/iPad
+// get a short how-to instead. Nothing shows once it's installed/running as an
+// app, or in browsers that offer no install path.
+let deferredInstallPrompt = null;
+
+function installEnv() {
+  return {
+    ua: navigator.userAgent,
+    platform: navigator.platform,
+    touchPoints: navigator.maxTouchPoints || 0,
+    standalone: window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true,
+  };
+}
+
+function isIosDevice(env) {
+  // iPadOS reports itself as a Mac, hence the touch-points check.
+  return /iphone|ipad|ipod/i.test(env.ua) || (env.platform === "MacIntel" && env.touchPoints > 1);
+}
+
+function renderInstallFooter(env = installEnv()) {
+  const wrap = document.querySelector(".wrap");
+  if (!wrap) return;
+  wrap.querySelector(".install-footer")?.remove();
+  if (env.standalone) return;
+
+  let content = null;
+  if (deferredInstallPrompt) {
+    const btn = el("button", { type: "button", class: "primary" }, "Install app");
+    btn.addEventListener("click", async () => {
+      const promptEvent = deferredInstallPrompt;
+      deferredInstallPrompt = null; // a prompt event can only be used once
+      renderInstallFooter(env);
+      promptEvent.prompt();
+      await promptEvent.userChoice.catch(() => {});
+    });
+    content = [btn, el("span", {}, "Add FTN Tracker to your device for one-tap access.")];
+  } else if (isIosDevice(env)) {
+    content = [el("span", {}, "Install on iPhone/iPad: tap the Share button, then “Add to Home Screen”.")];
+  }
+  if (content) wrap.appendChild(el("div", { class: "install-footer" }, content));
+}
+
+window.addEventListener("beforeinstallprompt", (event) => {
+  event.preventDefault(); // we show our own button instead of the browser's mini-infobar
+  deferredInstallPrompt = event;
+  renderInstallFooter();
+});
+window.addEventListener("appinstalled", () => {
+  deferredInstallPrompt = null;
+  renderInstallFooter();
+});
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => renderInstallFooter());
+else renderInstallFooter();
+
 // GitHub Pages caches data files for several minutes (Cache-Control: max-age=600).
 // A cache-busting query param forces every page load to fetch the latest
 // commit's data instead of waiting out that window, since a game submission

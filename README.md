@@ -238,6 +238,10 @@ The site is an installable PWA: `public/manifest.webmanifest` (name, colors, sho
   icon on desktop, ⋮ menu → *Install app* / *Add to Home screen* on Android).
 - **iPhone / iPad (Safari):** Share → *Add to Home Screen* (iOS has no install prompt).
 
+Every page also has an **Install app** button at the bottom (`renderInstallFooter()` in `app.js`): on
+Chrome/Edge/Android it appears when the browser says the site is installable and triggers the real install
+prompt; on iPhone/iPad it shows the Share → Add to Home Screen steps instead; it disappears once installed.
+
 The service worker **deliberately caches nothing** — every request goes straight to the network, so an
 installed copy always shows the latest handicaps and games exactly like the website. (Stale caches already
 caused real bugs on this site; don't add offline caching without a plan for that.) It exists only so
