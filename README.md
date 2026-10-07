@@ -228,6 +228,22 @@ That's the entire stack: this repo's own `data/` files, GitHub Pages for hosting
 purely to publish on push — no database, no server, nothing else to configure or that can go down
 independently.
 
+## Installing as an app
+
+The site is an installable PWA: `public/manifest.webmanifest` (name, colors, shortcuts), the icons in
+`public/icons/` (a regular rounded one, a full-bleed *maskable* one for Android's adaptive icons, and a
+180px apple-touch-icon for iOS), and `public/sw.js`, registered from `app.js`.
+
+- **Android / Chrome / Edge (desktop and phone):** use the browser's *Install app* option (address-bar
+  icon on desktop, ⋮ menu → *Install app* / *Add to Home screen* on Android).
+- **iPhone / iPad (Safari):** Share → *Add to Home Screen* (iOS has no install prompt).
+
+The service worker **deliberately caches nothing** — every request goes straight to the network, so an
+installed copy always shows the latest handicaps and games exactly like the website. (Stale caches already
+caused real bugs on this site; don't add offline caching without a plan for that.) It exists only so
+browsers treat the site as installable. Because `app.js` is versioned with `?v=N` on every page, bump
+that number whenever `app.js` changes so installed copies and phones pick up the new code.
+
 ## Roadmap (not built yet)
 
 - **Per-game box-score capture.** `stats.json` is currently season-level averages typed in by the group,

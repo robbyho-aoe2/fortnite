@@ -1,5 +1,13 @@
 // Shared data loading + rendering helpers used across all pages.
 
+// Registers the (pass-through, no-caching) service worker that makes the site
+// installable as an app - see sw.js for why it never caches anything.
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  });
+}
+
 // GitHub Pages caches data files for several minutes (Cache-Control: max-age=600).
 // A cache-busting query param forces every page load to fetch the latest
 // commit's data instead of waiting out that window, since a game submission
