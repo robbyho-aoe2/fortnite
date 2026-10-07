@@ -9082,11 +9082,11 @@
       "sean",
       "vinny"
     ],
-    "team1Score": 12,
-    "rawTeam1Score": 12,
+    "team1Score": 11,
+    "rawTeam1Score": 11,
     "roundsPlayed": 20,
-    "winningTeam": 1,
-    "team1Threshold": 11,
-    "team1ThresholdRaw": 11.100000000000001
+    "winningTeam": 2,
+    "team1Threshold": 12,
+    "team1ThresholdRaw": 12.03
   }
 ]
