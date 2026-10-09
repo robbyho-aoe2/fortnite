@@ -64,7 +64,7 @@
   </div>
 </div>
 
-<script src="app.js?v=5"></script>
+<script src="app.js?v=6"></script>
 <script>
 (async function () {
   const { players, games, config } = await loadData();
@@ -79,16 +79,17 @@
     .sort((a, b) => (b.publishedHC || 0) - (a.publishedHC || 0));
 
   // Handicaps are displayed as multiples of one player's handicap (the unit
-  // player, HC_UNIT_KEY in app.js - currently Mike Nolen = 1). Display only -
-  // everything is still stored and solved in raw units. If the unit player's
-  // handicap is too close to zero for a ratio to mean anything, fall back to
-  // the raw numbers and say so.
+  // player, HC_UNIT_KEY in app.js - currently Mike Nolen, "MN" = 1). Display
+  // only - everything is still stored and solved in raw units. If the unit
+  // player's handicap is too close to zero for a ratio to mean anything, fall
+  // back to the raw numbers and say so.
   const unit = hcUnit(players);
-  const unitName = hcUnitName(players);
-  const unitNamePlural = hcUnitName(players, true);
+  const unitLabel = hcUnitLabel();
+  const unitLabelPlural = hcUnitLabel(true);
+  const unitPlayerName = hcUnitPlayerName(players);
   document.getElementById("units-note").textContent = unit != null
-    ? `Handicaps are shown in ${unitNamePlural}: a multiple of ${unitName}'s own handicap (${unitName} = 1). Current Strength is in ${unitNamePlural} too, and Δ Last 20 compares each player's ${unitNamePlural} then vs. now.`
-    : `${unitName}'s handicap is too close to zero right now to use as a unit, so raw handicaps are shown instead.`;
+    ? `Handicaps are shown in ${unitLabelPlural}: a multiple of ${unitPlayerName}'s own handicap (${unitLabel} = 1). Current Strength is in ${unitLabelPlural} too, and Δ Last 20 compares each player's ${unitLabelPlural} then vs. now.`
+    : `${unitPlayerName}'s handicap is too close to zero right now to use as a unit, so raw handicaps are shown instead.`;
   // Color scales below are defined in raw handicap points; in units the same
   // distance is 1/unit as many steps.
   const scaleFactor = unit != null ? 1 / unit : 1;
@@ -107,8 +108,8 @@
     if (last20Color) { last20Cell.style.color = last20Color; last20Cell.style.fontWeight = "700"; }
 
     const hcContent = unit == null ? fmtNum(p.publishedHC)
-      : p.key === HC_UNIT_KEY ? unitName
-      : [fmtNum(p.publishedHC / unit), el("span", { class: "unit" }, ` ${unitNamePlural}`)];
+      : p.key === HC_UNIT_KEY ? unitLabel
+      : [fmtNum(p.publishedHC / unit), el("span", { class: "unit" }, ` ${unitLabelPlural}`)];
 
     tbody.appendChild(el("tr", {}, [
       el("td", {}, [

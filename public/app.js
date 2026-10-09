@@ -107,13 +107,15 @@ function hcChangeOver(history, playerKey, stepsBack) {
 // ---- Showing handicaps as multiples of one player's handicap ----
 // Display only: handicaps are still stored and solved in raw units. The
 // "unit player" (HC_UNIT_KEY) is whoever the group picked - currently Mike
-// Nolen, so a player at 1.42 reads "1.42 Mike Nolens" and the unit player
-// reads just "Mike Nolen". To switch to someone else, change this one key.
+// Nolen, shortened to "MN" (HC_UNIT_LABEL), so a player at 1.42 reads
+// "1.42 MNs" and the unit player reads just "MN". To switch to someone
+// else, change these two.
 // If the unit player's published handicap is too close to zero (a previous
 // pick, Doug, dipped slightly negative - base is floored at 0.25 but the
 // strength factor can push the published value below that) a ratio is
 // meaningless or explodes, so callers get null and fall back to raw numbers.
 const HC_UNIT_KEY = "mn";
+const HC_UNIT_LABEL = "MN";
 const HC_UNIT_MIN = 0.1;
 function hcUnitFrom(hc) {
   return Number.isFinite(hc) && hc >= HC_UNIT_MIN ? hc : null;
@@ -121,10 +123,13 @@ function hcUnitFrom(hc) {
 function hcUnit(players) {
   return hcUnitFrom(players.find((p) => p.key === HC_UNIT_KEY)?.publishedHC);
 }
-// "Mike Nolen" / "Mike Nolens"
-function hcUnitName(players, plural = false) {
-  const name = displayName(players.find((p) => p.key === HC_UNIT_KEY));
-  return plural ? name + "s" : name;
+// Short unit label: "MN" / "MNs"
+function hcUnitLabel(plural = false) {
+  return plural ? HC_UNIT_LABEL + "s" : HC_UNIT_LABEL;
+}
+// The unit player's full display name, for explanations: "Mike Nolen"
+function hcUnitPlayerName(players) {
+  return displayName(players.find((p) => p.key === HC_UNIT_KEY));
 }
 
 // Change in a player's units between now and `stepsBack` recomputes ago, with

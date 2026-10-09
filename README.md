@@ -85,13 +85,14 @@ All the tunable constants (`tau`, iteration limits, step sizes, bounds, window s
 **Published handicap = base + strength factor.** This is what's shown on the leaderboard.
 
 **Displayed as multiples of one player's handicap.** The Handicaps page shows each number relative to a
-"unit player" (`HC_UNIT_KEY` in `app.js` - currently Mike Nolen, so "1.42 Mike Nolens" means 1.42 times his
-published handicap, and he reads just "Mike Nolen"). It was Doug at first; changing the unit is one key. This is
-display-only - everything is still stored and solved in raw units (`hcUnit` / `hcUnitChangeOver` in `app.js`).
-Current Strength is divided by the same unit, and Δ Last 20 compares each player's units at each point in time
-against the unit player's handicap *at that time*. If the unit player's published number ever gets near zero a
-ratio would explode (Doug's did dip slightly negative once), so below `HC_UNIT_MIN` (0.1) the page falls back to
-raw handicaps and says so. The Moose Score page still shows raw handicaps.
+"unit player" (`HC_UNIT_KEY` / `HC_UNIT_LABEL` in `app.js` - currently Mike Nolen, shortened to "MN", so
+"1.42 MNs" means 1.42 times his published handicap, and he reads just "MN"). It was Doug at first; changing the
+unit is those two constants. This is display-only - everything is still stored and solved in raw units (`hcUnit` /
+`hcUnitChangeOver` in `app.js`). Current Strength is divided by the same unit, and Δ Last 20 compares each
+player's units at each point in time against the unit player's handicap *at that time*. If the unit player's
+published number ever gets near zero a ratio would explode (Doug's did dip slightly negative once), so below
+`HC_UNIT_MIN` (0.1) the page falls back to raw handicaps and says so. The Moose Score page still shows raw
+handicaps.
 
 **Tracking change over time.** `hc-history.json` holds one snapshot of every player's published handicap
 per recompute (submit, edit, or delete all count) — appended and trimmed to the most recent 250 entries
