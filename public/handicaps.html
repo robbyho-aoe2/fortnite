@@ -12,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-title" content="FTN Tracker" />
-<link rel="stylesheet" href="style.css?v=2" />
+<link rel="stylesheet" href="style.css?v=3" />
 </head>
 <body>
 <nav class="top">
@@ -27,6 +27,7 @@
 <div class="wrap">
   <h1>Current Handicaps</h1>
   <p class="sub">Auto-adjusted after every submitted game: a base rating solved to make history as even as possible, plus a current-record momentum nudge.</p>
+  <p class="sub" id="units-note"></p>
 
   <div class="card">
     <div class="table-scroll">
@@ -63,7 +64,7 @@
   </div>
 </div>
 
-<script src="app.js?v=3"></script>
+<script src="app.js?v=4"></script>
 <script>
 (async function () {
   const { players, games, config } = await loadData();
@@ -77,24 +78,41 @@
   const rows = visiblePlayers
     .sort((a, b) => (b.publishedHC || 0) - (a.publishedHC || 0));
 
+  // Handicaps are displayed in Dougs: multiples of Doug's own handicap (Doug
+  // = 1). Display only - everything is still stored and solved in raw units
+  // (see dougUnit in app.js). If Doug's handicap is too close to zero for a
+  // ratio to mean anything, fall back to the raw numbers and say so.
+  const unit = dougUnit(players);
+  document.getElementById("units-note").textContent = unit != null
+    ? "Handicaps are shown in Dougs: a multiple of Doug's own handicap (Doug = 1). Current Strength is in Dougs too, and Δ Last 20 compares each player's Dougs then vs. now."
+    : "Doug's handicap is too close to zero right now to use as a unit, so raw handicaps are shown instead.";
+  // Color scales below are defined in raw handicap points; in Dougs the same
+  // distance is 1/unit as many steps.
+  const scaleFactor = unit != null ? 1 / unit : 1;
+
   const tbody = document.querySelector("#leaderboard tbody");
   tbody.innerHTML = "";
   for (const p of rows) {
-    const last20 = hcChangeOver(history, p.key, 20);
+    const last20 = unit != null ? hcDougChangeOver(history, p.key, 20) : hcChangeOver(history, p.key, 20);
+    const strength = unit != null && p.strFac != null ? p.strFac / unit : p.strFac;
 
-    const strFacCell = el("td", { class: "num" }, fmtDelta(p.strFac));
+    const strFacCell = el("td", { class: "num" }, fmtDelta(strength));
     const last20Cell = el("td", { class: "num" }, fmtDelta(last20));
-    const strFacColor = deltaColor(p.strFac, 1);
-    const last20Color = deltaColor(last20, 3);
+    const strFacColor = deltaColor(strength, 1 * scaleFactor);
+    const last20Color = deltaColor(last20, 3 * scaleFactor);
     if (strFacColor) { strFacCell.style.color = strFacColor; strFacCell.style.fontWeight = "700"; }
     if (last20Color) { last20Cell.style.color = last20Color; last20Cell.style.fontWeight = "700"; }
+
+    const hcContent = unit == null ? fmtNum(p.publishedHC)
+      : p.key === "doug" ? "Doug"
+      : [fmtNum(p.publishedHC / unit), el("span", { class: "unit" }, " Dougs")];
 
     tbody.appendChild(el("tr", {}, [
       el("td", {}, [
         el("div", {}, playerPill(p)),
         el("div", { class: "player-sub" }, secondaryName(p)),
       ]),
-      el("td", { class: "num" }, fmtNum(p.publishedHC)),
+      el("td", { class: "num" }, hcContent),
       strFacCell,
       last20Cell,
     ]));

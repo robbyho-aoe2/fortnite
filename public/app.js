@@ -104,6 +104,34 @@ function hcChangeOver(history, playerKey, stepsBack) {
   return current - past;
 }
 
+// ---- Showing handicaps as multiples of Doug's ("Dougs") ----
+// Display only: handicaps are still stored and solved in raw units. Doug's own
+// published handicap is the unit, so Doug is exactly 1 ("Doug"). If his number
+// is too close to zero (it has dipped negative before - base is floored at
+// 0.25 but the strength factor can push the published value below that) a
+// ratio is meaningless or explodes, so callers get null and fall back to raw.
+const DOUG_UNIT_MIN = 0.1;
+function dougUnitFrom(dougHC) {
+  return Number.isFinite(dougHC) && dougHC >= DOUG_UNIT_MIN ? dougHC : null;
+}
+function dougUnit(players) {
+  return dougUnitFrom(players.find((p) => p.key === "doug")?.publishedHC);
+}
+
+// Change in a player's Dougs between now and `stepsBack` recomputes ago, with
+// each point measured against Doug's handicap *at that time* - so Doug is
+// always +0.00 and a rising Doug doesn't make everyone else look like they
+// dropped. Null if either end has no usable Doug unit (or no data).
+function hcDougChangeOver(history, playerKey, stepsBack) {
+  if (!history || history.length < 2) return null;
+  const now = history.at(-1).publishedHC;
+  const then = history[Math.max(0, history.length - 1 - stepsBack)].publishedHC;
+  const unitNow = dougUnitFrom(now.doug);
+  const unitThen = dougUnitFrom(then.doug);
+  if (unitNow == null || unitThen == null || now[playerKey] == null || then[playerKey] == null) return null;
+  return now[playerKey] / unitNow - then[playerKey] / unitThen;
+}
+
 // Kept in sync with lib/moose.js — duplicated here because app.js loads as a
 // plain (non-module) script on every page, while lib/moose.js is an ES
 // module imported directly by moose.html and lib/submit-game.js.
