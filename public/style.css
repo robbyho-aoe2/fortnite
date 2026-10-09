@@ -234,5 +234,5 @@ button.primary:hover:not(:disabled) { filter: brightness(1.08); }
 }
 .install-footer button.primary { align-self: auto; padding: 10px 18px; font-size: 0.95rem; }
 
-/* Small dim unit label after a number, e.g. the "Dougs" in "8.89 Dougs" */
+/* Small dim unit label after a number, e.g. the "Mike Nolens" in "1.42 Mike Nolens" */
 .unit { color: var(--text-dim); font-size: 0.75rem; font-weight: 400; }

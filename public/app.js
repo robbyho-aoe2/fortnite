@@ -104,30 +104,40 @@ function hcChangeOver(history, playerKey, stepsBack) {
   return current - past;
 }
 
-// ---- Showing handicaps as multiples of Doug's ("Dougs") ----
-// Display only: handicaps are still stored and solved in raw units. Doug's own
-// published handicap is the unit, so Doug is exactly 1 ("Doug"). If his number
-// is too close to zero (it has dipped negative before - base is floored at
-// 0.25 but the strength factor can push the published value below that) a
-// ratio is meaningless or explodes, so callers get null and fall back to raw.
-const DOUG_UNIT_MIN = 0.1;
-function dougUnitFrom(dougHC) {
-  return Number.isFinite(dougHC) && dougHC >= DOUG_UNIT_MIN ? dougHC : null;
+// ---- Showing handicaps as multiples of one player's handicap ----
+// Display only: handicaps are still stored and solved in raw units. The
+// "unit player" (HC_UNIT_KEY) is whoever the group picked - currently Mike
+// Nolen, so a player at 1.42 reads "1.42 Mike Nolens" and the unit player
+// reads just "Mike Nolen". To switch to someone else, change this one key.
+// If the unit player's published handicap is too close to zero (a previous
+// pick, Doug, dipped slightly negative - base is floored at 0.25 but the
+// strength factor can push the published value below that) a ratio is
+// meaningless or explodes, so callers get null and fall back to raw numbers.
+const HC_UNIT_KEY = "mn";
+const HC_UNIT_MIN = 0.1;
+function hcUnitFrom(hc) {
+  return Number.isFinite(hc) && hc >= HC_UNIT_MIN ? hc : null;
 }
-function dougUnit(players) {
-  return dougUnitFrom(players.find((p) => p.key === "doug")?.publishedHC);
+function hcUnit(players) {
+  return hcUnitFrom(players.find((p) => p.key === HC_UNIT_KEY)?.publishedHC);
+}
+// "Mike Nolen" / "Mike Nolens"
+function hcUnitName(players, plural = false) {
+  const name = displayName(players.find((p) => p.key === HC_UNIT_KEY));
+  return plural ? name + "s" : name;
 }
 
-// Change in a player's Dougs between now and `stepsBack` recomputes ago, with
-// each point measured against Doug's handicap *at that time* - so Doug is
-// always +0.00 and a rising Doug doesn't make everyone else look like they
-// dropped. Null if either end has no usable Doug unit (or no data).
-function hcDougChangeOver(history, playerKey, stepsBack) {
+// Change in a player's units between now and `stepsBack` recomputes ago, with
+// each point measured against the unit player's handicap *at that time* - so
+// the unit player is always +0.00 and a rising unit player doesn't make
+// everyone else look like they dropped. Null if either end has no usable unit
+// (or no data).
+function hcUnitChangeOver(history, playerKey, stepsBack) {
   if (!history || history.length < 2) return null;
   const now = history.at(-1).publishedHC;
   const then = history[Math.max(0, history.length - 1 - stepsBack)].publishedHC;
-  const unitNow = dougUnitFrom(now.doug);
-  const unitThen = dougUnitFrom(then.doug);
+  const unitNow = hcUnitFrom(now[HC_UNIT_KEY]);
+  const unitThen = hcUnitFrom(then[HC_UNIT_KEY]);
   if (unitNow == null || unitThen == null || now[playerKey] == null || then[playerKey] == null) return null;
   return now[playerKey] / unitNow - then[playerKey] / unitThen;
 }
