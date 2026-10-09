@@ -64,7 +64,7 @@
   </div>
 </div>
 
-<script src="app.js?v=6"></script>
+<script src="app.js?v=7"></script>
 <script>
 (async function () {
   const { players, games, config } = await loadData();
@@ -79,7 +79,7 @@
     .sort((a, b) => (b.publishedHC || 0) - (a.publishedHC || 0));
 
   // Handicaps are displayed as multiples of one player's handicap (the unit
-  // player, HC_UNIT_KEY in app.js - currently Mike Nolen, "MN" = 1). Display
+  // player, HC_UNIT_KEY in app.js - currently Doug = 1). Display
   // only - everything is still stored and solved in raw units. If the unit
   // player's handicap is too close to zero for a ratio to mean anything, fall
   // back to the raw numbers and say so.
