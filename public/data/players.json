@@ -5,8 +5,8 @@
     "realName": "Robby",
     "active": true,
     "baseHC": 4.035911794319302,
-    "strFac": -0.694850741528901,
-    "publishedHC": 3.34,
+    "strFac": -0.4001157830468739,
+    "publishedHC": 3.64,
     "seasonArchive": {
       "2023": {
         "games": 133,
@@ -122,8 +122,8 @@
     "realName": "Doug",
     "active": true,
     "baseHC": 0.47063843968372066,
-    "strFac": -0.050025297717873035,
-    "publishedHC": 0.42,
+    "strFac": -0.06596089638295079,
+    "publishedHC": 0.4,
     "seasonArchive": {
       "2023": {
         "games": 202,
@@ -161,8 +161,8 @@
     "realName": "Kyle",
     "active": true,
     "baseHC": 3.4846709508513785,
-    "strFac": -0.012433177187403815,
-    "publishedHC": 3.47,
+    "strFac": -0.000017004455581656752,
+    "publishedHC": 3.48,
     "seasonArchive": {
       "2023": {
         "games": 137,
@@ -239,7 +239,7 @@
     "realName": "Bello",
     "active": true,
     "baseHC": 2.2868990137133056,
-    "strFac": 0,
+    "strFac": 0.0061455260454798336,
     "publishedHC": 2.29,
     "seasonArchive": {
       "2023": {
@@ -335,8 +335,8 @@
     "realName": "Sean",
     "active": true,
     "baseHC": 6.291262999128783,
-    "strFac": 0.6929544638420176,
-    "publishedHC": 6.98,
+    "strFac": 0.4619076348997432,
+    "publishedHC": 6.75,
     "seasonArchive": {
       "2025": {
         "games": 371,
@@ -360,8 +360,8 @@
     "realName": "Vinny",
     "active": true,
     "baseHC": 4.0122442169394805,
-    "strFac": 0.39743554558209293,
-    "publishedHC": 4.41,
+    "strFac": 0.09597453036910719,
+    "publishedHC": 4.11,
     "seasonArchive": {
       "2025": {
         "games": 201,
