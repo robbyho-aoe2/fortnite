@@ -4,9 +4,9 @@
     "alias": "not A theist",
     "realName": "Robby",
     "active": true,
-    "baseHC": 4.168938917770922,
+    "baseHC": 4.06562987959044,
     "strFac": -0.39440119613313274,
-    "publishedHC": 3.77,
+    "publishedHC": 3.67,
     "seasonArchive": {
       "2023": {
         "games": 133,
@@ -43,9 +43,9 @@
     "alias": "MightyMosaic389",
     "realName": "Matt",
     "active": true,
-    "baseHC": 2.1202412613247468,
+    "baseHC": 2.2222340665986273,
     "strFac": -1.1272545714973499,
-    "publishedHC": 0.99,
+    "publishedHC": 1.09,
     "seasonArchive": {
       "2023": {
         "games": 160,
@@ -82,9 +82,9 @@
     "alias": "garfunkelmoose",
     "realName": "Mike Nolen",
     "active": true,
-    "baseHC": 2.6233354474753523,
-    "strFac": -0.5012531020131819,
-    "publishedHC": 2.12,
+    "baseHC": 2.725944956963133,
+    "strFac": -0.2910104581716918,
+    "publishedHC": 2.43,
     "seasonArchive": {
       "2023": {
         "games": 206,
@@ -121,9 +121,9 @@
     "alias": "TrdFrgsn20",
     "realName": "Doug",
     "active": true,
-    "baseHC": 0.3851382563904088,
+    "baseHC": 0.2909179336799439,
     "strFac": -0.22125320625974548,
-    "publishedHC": 0.16,
+    "publishedHC": 0.07,
     "seasonArchive": {
       "2023": {
         "games": 202,
@@ -161,8 +161,8 @@
     "realName": "Kyle",
     "active": true,
     "baseHC": 3.5636306833278377,
-    "strFac": 0.08309831534160766,
-    "publishedHC": 3.65,
+    "strFac": 0.07059530702466761,
+    "publishedHC": 3.63,
     "seasonArchive": {
       "2023": {
         "games": 137,
@@ -200,8 +200,8 @@
     "realName": "Jim",
     "active": true,
     "baseHC": 3.765420325994878,
-    "strFac": 0.18427071413667845,
-    "publishedHC": 3.95,
+    "strFac": 0.22811416290931796,
+    "publishedHC": 3.99,
     "seasonArchive": {
       "2023": {
         "games": 102,
