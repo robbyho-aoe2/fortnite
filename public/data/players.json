@@ -122,8 +122,8 @@
     "realName": "Doug",
     "active": true,
     "baseHC": 0.3851382563904088,
-    "strFac": -0.11789401563446077,
-    "publishedHC": 0.27,
+    "strFac": -0.22125320625974548,
+    "publishedHC": 0.16,
     "seasonArchive": {
       "2023": {
         "games": 202,
@@ -161,8 +161,8 @@
     "realName": "Kyle",
     "active": true,
     "baseHC": 3.5636306833278377,
-    "strFac": 0.07118291138689323,
-    "publishedHC": 3.63,
+    "strFac": 0.08309831534160766,
+    "publishedHC": 3.65,
     "seasonArchive": {
       "2023": {
         "games": 137,
@@ -200,8 +200,8 @@
     "realName": "Jim",
     "active": true,
     "baseHC": 3.765420325994878,
-    "strFac": 0.059107800715450215,
-    "publishedHC": 3.82,
+    "strFac": 0.18427071413667845,
+    "publishedHC": 3.95,
     "seasonArchive": {
       "2023": {
         "games": 102,
@@ -335,8 +335,8 @@
     "realName": "Sean",
     "active": true,
     "baseHC": 6.290376686214468,
-    "strFac": 0.4111480314351895,
-    "publishedHC": 6.7,
+    "strFac": 0.3625931978444431,
+    "publishedHC": 6.65,
     "seasonArchive": {
       "2025": {
         "games": 371,
