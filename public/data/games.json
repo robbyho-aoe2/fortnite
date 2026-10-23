@@ -9282,5 +9282,23 @@
     "winningTeam": 2,
     "team1Threshold": 11,
     "team1ThresholdRaw": 10.83
+  },
+  {
+    "id": "game-1792717814977",
+    "date": "2026-10-23",
+    "team1": [
+      "doug",
+      "sean"
+    ],
+    "team2": [
+      "mn",
+      "jim"
+    ],
+    "team1Score": 14,
+    "rawTeam1Score": 14,
+    "roundsPlayed": 20,
+    "winningTeam": 1,
+    "team1Threshold": 10,
+    "team1ThresholdRaw": 10.3
   }
 ]
