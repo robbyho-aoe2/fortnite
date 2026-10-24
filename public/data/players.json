@@ -83,8 +83,8 @@
     "realName": "Mike Nolen",
     "active": true,
     "baseHC": 2.7127254272148487,
-    "strFac": -0.3168798578027487,
-    "publishedHC": 2.4,
+    "strFac": -0.3433137246650469,
+    "publishedHC": 2.37,
     "seasonArchive": {
       "2023": {
         "games": 206,
@@ -122,8 +122,8 @@
     "realName": "Doug",
     "active": true,
     "baseHC": 0.37360274863894993,
-    "strFac": -0.11493885193761001,
-    "publishedHC": 0.26,
+    "strFac": -0.21797579556767716,
+    "publishedHC": 0.16,
     "seasonArchive": {
       "2023": {
         "games": 202,
@@ -161,8 +161,8 @@
     "realName": "Kyle",
     "active": true,
     "baseHC": 3.551385005745774,
-    "strFac": 0.07059530702466761,
-    "publishedHC": 3.62,
+    "strFac": 0.2603001772346013,
+    "publishedHC": 3.81,
     "seasonArchive": {
       "2023": {
         "games": 137,
@@ -200,8 +200,8 @@
     "realName": "Jim",
     "active": true,
     "baseHC": 3.765420325994878,
-    "strFac": 0.09325136172157396,
-    "publishedHC": 3.86,
+    "strFac": 0.1352969512366063,
+    "publishedHC": 3.9,
     "seasonArchive": {
       "2023": {
         "games": 102,
@@ -239,8 +239,8 @@
     "realName": "Bello",
     "active": true,
     "baseHC": 2.550164992967478,
-    "strFac": 0.37395168256811206,
-    "publishedHC": 2.92,
+    "strFac": 0.1377773863886727,
+    "publishedHC": 2.69,
     "seasonArchive": {
       "2023": {
         "games": 179,
@@ -410,8 +410,8 @@
     "realName": "LP",
     "active": false,
     "baseHC": -3.5837129059359643,
-    "strFac": 0.22045407685048632,
-    "publishedHC": -3.36,
+    "strFac": 0.4088455592137047,
+    "publishedHC": -3.17,
     "seasonArchive": {}
   },
   {
