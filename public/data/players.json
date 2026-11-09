@@ -4,9 +4,9 @@
     "alias": "not A theist",
     "realName": "Robby",
     "active": true,
-    "baseHC": 4.1092627170849045,
-    "strFac": -0.03578781140990736,
-    "publishedHC": 4.07,
+    "baseHC": 4.326632559742235,
+    "strFac": -0.011464551245942187,
+    "publishedHC": 4.32,
     "seasonArchive": {
       "2023": {
         "games": 133,
@@ -122,8 +122,8 @@
     "realName": "Doug",
     "active": true,
     "baseHC": 0.37360274863894993,
-    "strFac": -0.19414031615581895,
-    "publishedHC": 0.18,
+    "strFac": -0.21170658800013176,
+    "publishedHC": 0.16,
     "seasonArchive": {
       "2023": {
         "games": 202,
@@ -161,8 +161,8 @@
     "realName": "Kyle",
     "active": true,
     "baseHC": 3.551385005745774,
-    "strFac": 0.2722056182986154,
-    "publishedHC": 3.82,
+    "strFac": 0.5399121835531714,
+    "publishedHC": 4.09,
     "seasonArchive": {
       "2023": {
         "games": 137,
@@ -335,8 +335,8 @@
     "realName": "Sean",
     "active": true,
     "baseHC": 6.22326965777307,
-    "strFac": 0.7273215400763156,
-    "publishedHC": 6.95,
+    "strFac": 0.5934220111751676,
+    "publishedHC": 6.82,
     "seasonArchive": {
       "2025": {
         "games": 371,
